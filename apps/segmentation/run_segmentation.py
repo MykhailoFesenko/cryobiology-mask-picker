@@ -30,8 +30,6 @@ Resume: cellsegkit пропускає фото де всі 4 формати вж
 Зависимости:
     pip install -e ./shared/cellsegkit
     pip install instanseg-torch    # для instanseg (built-in + custom TorchScript)
-    pip install stardist csbdeep   # для stardist
-    pip install tensorflow         # для stardist (требует TF; Windows = CPU-only)
     pip install ultralytics        # для YOLO11-seg (yolo11_512/680/sphero)
 
 Кастомні ваги Cryobiology 4 очікуються в:
@@ -103,10 +101,6 @@ OUTPUT_BASE = DATA_DIR / "output"
 #  "instanseg"           — ★ ЛУЧШИЙ F1 (Криобиология III), нужен: pip install instanseg-torch
 #  "instanseg:brightfield" — InstanSeg для brightfield-микроскопии
 #
-#  "stardist"            — StarDist 2D, fluorescence, нужен: pip install stardist csbdeep tensorflow
-#  "stardist:he"         — StarDist 2D для H&E-окраски
-#  "stardist:dsb"        — StarDist 2D, DSB-2018
-#
 #  "cellsam"             — CellSAM (SAM-based)
 #
 #  Кастомні ваги з Криобиология 4/ (вимагають ./Криобиология 4/weights/):
@@ -116,7 +110,6 @@ OUTPUT_BASE = DATA_DIR / "output"
 #  "yolo11_512"              — YOLO11x-seg (L929 монолайер, 512-trained)
 #  "yolo11_680"              — YOLO11x-seg (L929 монолайер, 680-trained, Full)
 #  "yolo11_sphero"           — YOLO11x-seg (сфероїди / spherical MSCs)
-#  "stardist_0602"           — StarDist 2D custom (opt-in, TF CPU ~26 год/154 фото)
 #
 MODEL_TYPE = "cyto2"
 
@@ -124,10 +117,7 @@ MODEL_TYPE = "cyto2"
 EXPORT_FORMATS = ("overlay", "npy", "png", "yolo")
 
 # Список моделей для запуска через --all.
-# stardist прибрано: TF 2.21 на Windows не підтримує GPU (тільки через WSL2).
-# На CPU один прогін ~26 годин, що нежиттєздатно. Якщо потрібен stardist_0602 —
-# додавай у список і запускай окремою командою (буде довго).
-# yolo11_sphero теж поза списком — натренована на сфероїдах, не на ядрах.
+# yolo11_sphero поза списком — натренована на сфероїдах, не на ядрах.
 ALL_MODELS = [
     # built-in
     "cyto2",
@@ -239,7 +229,7 @@ def run_model(model_type: str, segmenter_factory, run_segmentation_fn):
     """Запускает сегментацию одной моделью в её собственную подпапку."""
 
     # Папка вывода: output/<model_type>/
-    safe_name = model_type.replace(":", "_")   # "stardist:he" → "stardist_he"
+    safe_name = model_type.replace(":", "_")   # "instanseg:brightfield" → "instanseg_brightfield"
     output_dir = OUTPUT_BASE / safe_name
     output_dir.mkdir(parents=True, exist_ok=True)
 

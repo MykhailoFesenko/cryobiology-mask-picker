@@ -19,8 +19,7 @@
 ---
 
 ## 1. Передумови
-- **Python 3.10–3.13** (тестовано на 3.13), `pip`, `git`. Верхню межу задає TensorFlow
-  (потрібен лише для опційної моделі StarDist) — ядро Mask Picker і решта моделей працюють ширше.
+- **Python 3.10–3.13** (тестовано на 3.13), `pip`, `git`.
 - Windows / Linux / macOS. (Розробка велась на Windows; шляхи в коді відносні — переносно.)
 - GPU (CUDA) — **опційно**: пришвидшує сегментацію; без нього працює на CPU (повільніше; частина моделей лише CPU).
 
@@ -43,13 +42,12 @@ pip install -e ./shared/cellsegkit
 pip install cellpose            # cyto2/cyto/nuclei (built-in, без окремих ваг)
 pip install instanseg-torch     # instanseg
 pip install ultralytics         # yolo11_*
-pip install stardist csbdeep tensorflow   # stardist (важко; TensorFlow задає верхню межу Python ≤3.13; Windows = CPU-only)
 ```
 
 ## 3. Ваги моделей (важливо — відповідь на часте питання)
 | Моделі | Потрібні ваги з `cryobiology4/weights/`? |
 |---|---|
-| `cyto2`, `cyto`, `nuclei`, `instanseg` (public), `stardist` (public) | **НІ** — качаються самими пакетами при першому запуску |
+| `cyto2`, `cyto`, `nuclei`, `instanseg` (public) | **НІ** — качаються самими пакетами при першому запуску |
 | `cpsam_finetuned`, `instanseg_neuroblastoma`, `instanseg_0605`, `yolo11_512`, `yolo11_680` | **ТАК** — кастомні ваги Cryobiology IV (~1.8 ГБ) |
 
 **Ваги НЕ зберігаються у git-репо** (1.8 ГБ — задорого для git). Вони доступні окремо

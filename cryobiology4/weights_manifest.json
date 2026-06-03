@@ -11,7 +11,5 @@
     {"asset": "YOLO11x-sphero-seg.pt",          "dest": "YOLO11x-sphero-seg.pt",          "size_mb": 119,  "models": ["yolo11_sphero"]},
     {"asset": "yolov8m-det.onnx",               "dest": "yolov8m-det.onnx",               "size_mb": 99,   "models": []}
   ],
-  "archives": [
-    {"asset": "stardist0602.zip", "dest_dir": "stardist0602", "size_mb": 12, "models": ["stardist_0602"]}
-  ]
+  "archives": []
 }

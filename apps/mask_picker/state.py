@@ -198,7 +198,7 @@ def _discover_models(output_root: Path) -> list[ModelSource]:
 
     Правила:
     1) Якщо є підпапка з підпапкою overlay/ всередині — це модель.
-       Назва моделі = ім'я підпапки (cyto2, instanseg, stardist, ...).
+       Назва моделі = ім'я підпапки (cyto2, instanseg, ...).
     2) Якщо в самому output/ лежать overlay/, png/, ... — це legacy запуск,
        називаємо його '_legacy_root'.
     3) Порожні моделі (без жодного overlay-файлу) ігноруємо.

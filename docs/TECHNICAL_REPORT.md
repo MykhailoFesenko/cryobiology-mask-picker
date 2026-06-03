@@ -17,7 +17,7 @@ downstream-алгоритму привʼязки везикул (clusterization)
 файлами на диску.
 
 ## 2. Проблема й контекст
-Автоматична сегментація (Cellpose/InstanSeg/StarDist/YOLO) на складних знімках дає
+Автоматична сегментація (Cellpose/InstanSeg/YOLO) на складних знімках дає
 неідеальні маски: пропуски, хибні обʼєкти, злиплі клітини. Для навчання/валідації
 алгоритму кластеризації потрібен **чистий розмічений датасет**. Ручна розмітка з нуля
 надто дорога → потрібен інструмент, що бере найкращий ML-вихід і дає людині ефективно
@@ -93,6 +93,6 @@ batch-експортером (cellsegkit) і у фінальному deliverable
   (`github.com/nazarzharskyi/cryobiology3`, автор Fedir Yarovyi, MIT). Використовується для
   deliverable-рендеру; інтерактивна логіка Mask Picker — оригінальна (Solution B вивів cellsegkit
   з гарячого шляху).
-- ML-моделі: Cellpose, InstanSeg, StarDist, YOLO11 (відповідні ліцензії).
+- ML-моделі: Cellpose, InstanSeg, YOLO11 (відповідні ліцензії).
 
 > Повна архітектура: `docs/architecture/README.md`. Шлях проєкту й оцінка часу: `docs/PROJECT_JOURNEY.md`.

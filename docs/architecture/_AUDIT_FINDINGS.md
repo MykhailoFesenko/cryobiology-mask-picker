@@ -157,7 +157,7 @@
   1=nucleus, 2=vesicle»); опційно — semantic за фіксованою мапою назв, не за порядком.
 
 > _Сегментація (`apps/segmentation/run_segmentation.py`) переглянута — багів нема (грейсфул skip моделей,
-> resume, UTF-8 fix). Залежності: `shared/cellsegkit` (in-repo) + pip (instanseg/stardist/ultralytics) +
+> resume, UTF-8 fix). Залежності: `shared/cellsegkit` (in-repo) + pip (instanseg/ultralytics) +
 > `cryobiology4/weights/` для кастомних моделей (built-in cyto2 працює без них)._
 
 ---

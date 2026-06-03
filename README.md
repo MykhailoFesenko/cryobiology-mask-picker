@@ -13,7 +13,7 @@
  apps/segmentation  ─▶  data/<dataset>/output/  ─▶  apps/mask_picker  ─▶  deliverable
    (ML-моделі:           (чорнові instance-маски)    (Cleanup·Polygons·    (dense npy +
     Cellpose/InstanSeg/                               Groups + bake)        semantic + groups)
-    StarDist/YOLO)
+    YOLO)
 ```
 
 ---

@@ -21,7 +21,6 @@ cellsegkit (vendored under shared/cellsegkit/)
 Segmentation models (invoked via their own packages; respective licenses apply):
   - Cellpose            (cyto2 / cyto / nuclei)
   - InstanSeg           (instanseg, instanseg-torch)
-  - StarDist + CSBDeep  (stardist)
   - Ultralytics YOLO    (yolo11_*)
   - Segment Anything (SAM) / CellSAM
 
