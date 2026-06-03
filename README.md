@@ -47,6 +47,8 @@
 
 ## Швидкий старт
 Повна інструкція (встановлення, ваги, чистий ПК) → **[`INSTALL.md`](INSTALL.md)**.
+
+> **Windows:** спершу встанови [Microsoft Visual C++ Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe) — без нього PyTorch не стартує (`OSError: WinError 126`, `c10.dll`).
 ```bash
 pip install -r apps/mask_picker/requirements.txt
 pip install -e ./shared/cellsegkit

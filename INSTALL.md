@@ -21,6 +21,10 @@
 ## 1. Передумови
 - **Python 3.10+** (тестовано на 3.13), `pip`, `git`.
 - Windows / Linux / macOS. (Розробка велась на Windows; шляхи в коді відносні — переносно.)
+- **Windows:** PyTorch (його використовують моделі сегментації / cellsegkit) потребує **Microsoft Visual C++
+  Redistributable (x64)** — на свіжій системі чи віртуалці його зазвичай немає. Постав один раз:
+  <https://aka.ms/vs/17/release/vc_redist.x64.exe> — інакше `import torch` падає з `OSError: [WinError 126]
+  ... c10.dll`. (Linux/macOS це не стосується.)
 - GPU (CUDA) — **опційно**: пришвидшує сегментацію; без нього працює на CPU (повільніше; частина моделей лише CPU).
 
 ## 2. Встановлення
@@ -87,6 +91,8 @@ python tools/launchers/bake_all.py --data-dir data/my_dataset --pack
 - **Нема залежності:** Mask Picker деградує мʼяко — без `opencv`/`cellsegkit` малювання/збереження
   працюють, а seed/bake повертають 503 (не падає). Сегментація **пропускає** моделі, чиїх бібліотек нема
   (ImportError → skip, не крах). Але `Flask`+`numpy` — обовʼязкові (з `requirements.txt`).
+- **Windows `WinError 126` / не вантажиться `c10.dll` при `import torch`:** не встановлено Microsoft Visual C++
+  Redistributable (див. §1) → постав `vc_redist.x64.exe` і повтори. Це системна вимога PyTorch, не баг застосунку.
 - **Передача масок між застосунками:** лише через спільний `data/<dataset>/output/` — запусти сегментацію
   ДО Mask Picker. Mask Picker авто-знаходить моделі (підпапки з `overlay/` всередині `output/`).
 - **Рекомендований smoke-тест чистого середовища:** `python -m venv` → `pip install -r ...` →
