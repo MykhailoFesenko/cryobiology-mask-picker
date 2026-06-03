@@ -23,7 +23,7 @@ echo.
 
 REM Використовуємо PowerShell Compress-Archive (вбудований у Windows 10+)
 powershell -NoProfile -Command ^
-    "$items = @('data\vesicles_good\images', 'data\vesicles_good\polygons', 'data\vesicles_good\selections.json', 'data\vesicles_good\labels.json', 'data\vesicles_good\output', 'apps\mask_picker', 'apps\segmentation', 'tools\launchers', 'tools\check_roundtrip.py', 'docs', 'для_мене', 'bake_all.bat', 'run_mask_picker.bat'); $exist = $items | Where-Object { Test-Path $_ }; Compress-Archive -Path $exist -DestinationPath '%OUT%' -CompressionLevel Optimal -Force"
+    "$items = @('data\vesicles_good\images', 'data\vesicles_good\polygons', 'data\vesicles_good\selections.json', 'data\vesicles_good\labels.json', 'data\vesicles_good\output', 'apps\mask_picker', 'apps\segmentation', 'tools\launchers', 'tools\check_roundtrip.py', 'docs', 'bake_all.bat', 'run_mask_picker.bat'); $exist = $items | Where-Object { Test-Path $_ }; Compress-Archive -Path $exist -DestinationPath '%OUT%' -CompressionLevel Optimal -Force"
 
 if exist "%OUT%" (
     echo.

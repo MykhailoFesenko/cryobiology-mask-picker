@@ -94,6 +94,6 @@ Groups-autosave реасайнить `g.list = resp.groups` (echo) → in-flight
 ---
 
 ## 8. Known / edge + посилання
-- Verified (preview MCP, db_img_0084): крос-домен undo×3+redo round-trip з автоперемиканням табів; compound polygon-delete #102/g_001 = один запис [groups,polygons]; клавіатура Ctrl+Z/Shift+Z/Y. 0 console-err.
+- Verified (браузерна верифікація, db_img_0084): крос-домен undo×3+redo round-trip з автоперемиканням табів; compound polygon-delete #102/g_001 = один запис [groups,polygons]; клавіатура Ctrl+Z/Shift+Z/Y. 0 console-err.
 - Знімки — deep-copy (shapes/list); cleanup — свіжі Set/масиви. Аліасингу зі стеком нема (знятий запис вже не в стеку).
 - Стан групи/полігонів → [`07`](07_GROUPS_TOOL.md)/[`06`](06_POLYGONS_TOOL.md); форма state → [`02`](02_FRONTEND_STATE.md).

@@ -58,7 +58,6 @@ python apps/mask_picker/app.py --workspace data/my_dataset   # → http://127.0.
 - **[`docs/TECHNICAL_REPORT.md`](docs/TECHNICAL_REPORT.md)** — цілісна технічна записка.
 - **[`docs/architecture/`](docs/architecture/README.md)** — детальна архітектура (14 підсистем, front↔back).
 - **[`docs/PROJECT_JOURNEY.md`](docs/PROJECT_JOURNEY.md)** — шлях проєкту й складнощі.
-- **[`docs/ROADMAP.md`](docs/ROADMAP.md)** — плани.
 
 ## Дані та ваги моделей
 Не зберігаються в репо (великі/чутливі), доступні окремо:
