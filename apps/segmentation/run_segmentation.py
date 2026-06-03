@@ -295,12 +295,31 @@ def run():
 
     try:
         from cellsegkit import SegmenterFactory, run_segmentation
-    except ImportError:
-        print(
-            "\n❌ Пакет cellsegkit не найден.\n"
-            "Установи его командой:\n"
-            "    pip install -e ./shared/cellsegkit\n"
-        )
+    except (ImportError, OSError) as e:
+        if isinstance(e, ModuleNotFoundError) and "cellsegkit" in str(e):
+            print(
+                "\n❌ Пакет cellsegkit не найден.\n"
+                "Установи его командой:\n"
+                "    pip install -e ./shared/cellsegkit\n"
+            )
+        else:
+            # Чаще всего на Windows: PyTorch не может загрузить свои DLL (c10.dll),
+            # потому что не установлен Microsoft Visual C++ Redistributable.
+            print(
+                "\n❌ Не удалось импортировать cellsegkit / PyTorch "
+                "(нужен моделям сегментации).\n"
+                f"   {type(e).__name__}: {e}\n"
+            )
+            if sys.platform == "win32":
+                print(
+                    "   На Windows это обычно значит, что не установлен Microsoft Visual C++\n"
+                    "   Redistributable — PyTorch не может загрузить c10.dll (WinError 126).\n"
+                    "   Поставь его и перезапусти терминал:\n"
+                    "       https://aka.ms/vs/17/release/vc_redist.x64.exe\n"
+                    "   Подробнее — INSTALL.md (раздел 1).\n"
+                )
+            else:
+                print("   Проверь установку torch и системных библиотек (см. INSTALL.md).\n")
         sys.exit(1)
 
     models = ALL_MODELS if run_all else [MODEL_TYPE]
