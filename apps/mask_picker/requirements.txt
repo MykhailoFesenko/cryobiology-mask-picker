@@ -1,0 +1,17 @@
+Flask>=3.0
+PyYAML>=6.0
+
+# Runtime for cleanup/export and polygon editing.
+numpy>=1.24
+Pillow>=10.0
+
+# Seed-from-mask uses cv2.findContours + approxPolyDP.
+# If opencv-python is missing, draw/edit/save still work, but seed buttons return 503.
+opencv-python>=4.8
+matplotlib>=3.3
+scikit-image>=0.18
+
+# cellsegkit is loaded from ./shared/cellsegkit by launchers via PYTHONPATH.
+
+# Dev / test
+pytest>=7.0

@@ -1,0 +1,867 @@
+:root {
+  --bg: #0f1115;
+  --surface: #161a22;
+  --surface-2: #1c2130;
+  --border: #2a3042;
+  --fg: #e6e9ef;
+  --fg-dim: #9aa3b7;
+  --muted: #6a7388;
+  --accent: #6ea8ff;
+  --accent-strong: #4f8bff;
+  --ok: #5ad18b;
+  --warn: #ffb450;
+  --danger: #ff6b6b;
+  --selected: #5ad18b;
+  --skipped: #ffb450;
+  --dirty: #ffd24a;   /* Day 7: незапечені зміни (жовтий) */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+  font: 14px/1.4 -apple-system, Segoe UI, Roboto, sans-serif; }
+
+.muted { color: var(--muted); font-size: 12px; }
+
+/* -------------- Topbar -------------- */
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.topbar__title { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
+.logo { font-size: 20px; }
+.topbar__progress { flex: 1; display: flex; align-items: center; gap: 10px; }
+.progress { flex: 1; height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+.progress__fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--ok)); transition: width 0.3s; }
+.progress__label { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--fg-dim); min-width: 120px; text-align: right; }
+.topbar__workspace {
+  display: flex; align-items: center; gap: 6px;
+  border-right: 1px solid var(--border); padding-right: 12px; margin-right: 4px;
+}
+.topbar__workspace .muted { font-size: 11px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn--sm { padding: 4px 8px; font-size: 12px; }
+.topbar__user { display: flex; align-items: center; gap: 8px; }
+.topbar__user input {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--fg);
+  padding: 6px 10px; border-radius: 6px; width: 140px;
+}
+.topbar__user input:focus { outline: 1px solid var(--accent); }
+
+/* -------------- Main layout -------------- */
+.main { display: flex; height: calc(100vh - 52px); }
+
+/* -------------- Sidebar -------------- */
+.sidebar {
+  width: 280px; border-right: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column;
+}
+.sidebar__header {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+  font-weight: 600; font-size: 13px;
+}
+.filters { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--fg-dim);
+  padding: 3px 8px; border-radius: 12px; font-size: 11px; cursor: pointer;
+}
+.chip:hover { color: var(--fg); }
+.chip--active { background: var(--accent); border-color: var(--accent); color: #05121e; font-weight: 600; }
+
+.image-list { overflow-y: auto; flex: 1; }
+.image-list__item {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; font-size: 12px;
+}
+.image-list__item:hover { background: var(--surface-2); }
+.image-list__item--current { background: var(--surface-2); border-left: 3px solid var(--accent); padding-left: 9px; }
+.image-list__badge {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  background: var(--border);
+}
+.image-list__badge--selected { background: var(--selected); }
+/* Day 7: пропущені фото — червоним (раніше жовтим; жовтий тепер = dirty). */
+.image-list__badge--skipped { background: var(--danger); }
+.image-list__name { font-variant-numeric: tabular-nums; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Day 7: жовта крапка — у stem є незапечені зміни (dirty). */
+.image-list__dirty { color: var(--dirty); font-size: 11px; flex-shrink: 0; line-height: 1; }
+/* Day 8.5: кнопка повернення фото з смітника. */
+.image-list__restore {
+  flex-shrink: 0; background: transparent; border: 0; cursor: pointer;
+  color: var(--warn); font-size: 13px; padding: 0; line-height: 1; width: 13px;
+}
+.image-list__restore:hover { color: var(--ok); }
+.image-list__model {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px;
+  background: var(--surface-2); color: var(--fg-dim); flex-shrink: 0;
+}
+
+/* -------------- Workspace -------------- */
+.workspace { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 16px; overflow: hidden; }
+.workspace__toolbar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.workspace__filename {
+  flex: 1; text-align: center; font-weight: 600; font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--fg);
+  padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+.btn:hover { background: var(--border); }
+.btn:active { transform: translateY(1px); }
+.btn--warn { border-color: var(--warn); color: var(--warn); }
+.btn--warn:hover { background: rgba(255, 180, 80, 0.1); }
+.btn--ghost { background: transparent; border-color: transparent; color: var(--fg-dim); }
+.btn--ghost:hover { background: var(--surface-2); color: var(--fg); }
+.btn--quit:hover { background: rgba(220, 80, 80, 0.18); color: #ff8b8b; }
+
+/* -------------- Variants grid -------------- */
+.variants {
+  flex: 1; overflow-y: auto; display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-auto-rows: 1fr;      /* усі рядки однакової висоти — однаковий sizing для original / model variants */
+  align-content: stretch;
+}
+.variant {
+  border: 2px solid var(--border); border-radius: 8px; background: var(--surface);
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: border-color 120ms, transform 120ms;
+  cursor: zoom-in;
+  min-height: 0;   /* дозволити image-wrap усихати у grid-cell без overflow */
+}
+.variant:hover { border-color: var(--accent); transform: translateY(-2px); }
+.variant--selected { border-color: var(--selected); box-shadow: 0 0 0 2px rgba(90, 209, 139, 0.25); }
+.variant--original { border-style: dashed; cursor: zoom-in; }
+.variant--original:hover { border-color: var(--fg-dim); transform: none; }
+
+.variant__header {
+  padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600;
+}
+.variant__key {
+  background: var(--accent); color: #05121e; padding: 1px 7px;
+  border-radius: 4px; font-size: 11px; font-weight: 700;
+}
+.variant--original .variant__key { background: var(--fg-dim); }
+.variant__name { flex: 1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.variant__zoom {
+  background: transparent; border: 0; color: var(--fg-dim); cursor: pointer;
+  padding: 0 4px; font-size: 14px;
+}
+.variant__zoom:hover { color: var(--fg); }
+
+.variant__pick {
+  background: transparent; border: 1px solid var(--border); color: var(--fg-dim);
+  cursor: pointer; padding: 1px 6px; font-size: 14px; line-height: 1;
+  border-radius: 4px;
+}
+.variant__pick:hover { color: var(--fg); border-color: var(--accent); background: var(--surface-2); }
+.variant__pick--on { color: var(--selected); border-color: var(--selected); }
+.variant__image-wrap {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  background: #000; min-height: 240px; overflow: hidden;
+  position: relative;
+}
+.variant__image-wrap img {
+  /* width/height 100% (а не max-*) щоб малі overlay-PNG (775×589) масштабувались
+     до того ж розміру що й оригінал (2572×1956). object-fit: contain зберігає
+     aspect ratio. Без цього при hold-O preview розмір "стрибає". */
+  width: 100%; height: 100%; object-fit: contain;
+  display: block;
+}
+.variant__badge-selected {
+  position: absolute; top: 8px; right: 8px; background: var(--selected);
+  color: #05121e; padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; z-index: 5;
+}
+/* Day 7: обраний варіант з незапеченими змінами — жовтий бейдж. */
+.variant__badge-selected--dirty { background: var(--dirty); }
+.variant__polyoverlay { z-index: 1; pointer-events: none; }
+.variant--preview-orig { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.variant--preview-orig .variant__header::after {
+  content: "оригінал (O)"; margin-left: auto; font-size: 10px;
+  color: var(--accent); font-weight: 600;
+}
+/* v1.7.2 QA: при hold-O ховаємо polygon SVG-overlay'ї поверх variant і zoom — щоб
+   справді бачити чистий original без anything поверх. */
+.variant--preview-orig .variant__polyoverlay,
+.zoom-figure.variant--preview-orig .zoom-figure__polyoverlay {
+  display: none !important;
+}
+
+.hint {
+  margin-top: 12px; padding: 10px 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 12px; color: var(--fg-dim);
+}
+.hint--selected { border-color: var(--selected); color: var(--fg); }
+.hint--skipped  { border-color: var(--skipped);  color: var(--fg); }
+
+/* -------------- Modal -------------- */
+.modal {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.modal.open { display: flex; }
+/* Multi-seed launches з editor (#cleanupModal) — обидва на z-index 100,
+   але cleanupModal стоїть пізніше в DOM, тому без явного підняття
+   multi-seed рендерився під ним. */
+#multiSeedModal { z-index: 110; }
+/* Group Classes Manager launches з editor так само як multi-seed — підняти. */
+#groupClassesModal { z-index: 110; }
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.7); cursor: pointer; }
+.modal__content {
+  position: relative; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px 24px; max-width: 600px; width: 90%;
+  max-height: 85vh; overflow-y: auto;
+}
+.modal__content--zoom { max-width: 95vw; max-height: 95vh; padding: 12px; }
+.modal__close {
+  position: absolute; top: 6px; right: 8px; background: transparent; border: 0;
+  color: var(--fg-dim); font-size: 26px; cursor: pointer; line-height: 1;
+}
+.modal__close:hover { color: var(--fg); }
+
+/* -------------- Day 7: Save All / bake-all modal -------------- */
+.modal__content--bake { max-width: 480px; }
+.modal__content--bake h2 { margin: 0 0 12px; font-size: 18px; }
+.bake__intro {
+  color: var(--warn); font-size: 13px; line-height: 1.5;
+  background: rgba(255, 180, 80, 0.08); border: 1px solid rgba(255, 180, 80, 0.25);
+  border-radius: 6px; padding: 8px 12px; margin: 0 0 16px;
+}
+.bake__row { margin-bottom: 14px; }
+.bake__rowlabel {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-size: 12px; color: var(--fg-dim); margin-bottom: 5px;
+}
+.bake__rowlabel span:last-child {
+  font-variant-numeric: tabular-nums; color: var(--fg); font-weight: 600;
+}
+.progress--bake { height: 14px; border-radius: 7px; }
+.progress__fill--inst {
+  background: linear-gradient(90deg, var(--warn), var(--dirty));
+}
+.bake__status {
+  white-space: pre-line; font-size: 12px; color: var(--fg-dim);
+  max-height: 180px; overflow-y: auto; margin: 12px 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.bake__status--err { color: var(--danger); }
+.bake__footer { display: flex; justify-content: flex-end; margin-top: 14px; }
+
+/* -------------- Day 8: merge import range-picker modal -------------- */
+.modal__content--import { max-width: 560px; }
+.import-src { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.import-src:last-child { border-bottom: 0; }
+.import-src--err { color: var(--danger); font-size: 13px; }
+.import-src__name { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+.import-src__range {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--fg-dim);
+}
+.import-src__range input {
+  width: 84px; background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--fg); padding: 4px 8px; border-radius: 5px;
+  font-variant-numeric: tabular-nums;
+}
+.import-src__count {
+  margin-left: auto; color: var(--accent); font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.import-merge__footer {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;
+}
+
+/* -------------- Day 8.5: Export modal -------------- */
+.modal__content--export { max-width: 540px; }
+.export__rangefilter {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 13px; margin-bottom: 10px;
+}
+.export__rangefilter input {
+  width: 84px; background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--fg); padding: 4px 8px; border-radius: 5px;
+  font-variant-numeric: tabular-nums;
+}
+.export__selall {
+  display: flex; align-items: center; gap: 8px; font-weight: 600;
+  padding: 6px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.export__selall .muted { font-weight: 400; }
+.export__list { max-height: 300px; overflow-y: auto; margin: 6px 0; }
+.export__item {
+  display: flex; align-items: center; gap: 8px; padding: 4px 4px;
+  cursor: pointer; font-size: 13px; border-radius: 4px;
+}
+.export__item:hover { background: var(--surface-2); }
+.export__badge { width: 16px; text-align: center; color: var(--fg-dim); }
+.export__stemname { font-variant-numeric: tabular-nums; }
+.export__opts {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px;
+}
+.export__opts label { display: flex; align-items: center; gap: 6px; }
+.export__opts input[type="number"] {
+  width: 58px; background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--fg); padding: 3px 6px; border-radius: 5px;
+}
+.export__dest {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 13px; padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.export__dest input[type="text"] {
+  flex: 1; min-width: 200px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--fg); padding: 4px 8px; border-radius: 5px;
+  font: 12px ui-monospace, Menlo, monospace;
+}
+.export__footer {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;
+}
+
+/* -------------- Day 8.5: bulk-user modal -------------- */
+.modal__content--bulkuser { max-width: 440px; }
+.bulkuser__field {
+  margin: 12px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.bulkuser__field label {
+  font-size: 12px; color: var(--fg-dim); min-width: 116px;
+}
+.bulkuser__field input[type="text"],
+.bulkuser__field input[type="number"] {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--fg);
+  padding: 6px 10px; border-radius: 6px; font-variant-numeric: tabular-nums;
+}
+.bulkuser__field input[type="text"] { flex: 1; min-width: 160px; }
+.bulkuser__field input[type="number"] { width: 88px; }
+.bulkuser__footer {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;
+}
+
+.zoom-title { padding: 4px 0 10px; font-weight: 600; }
+.zoom-images {
+  display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+.zoom-images figure { margin: 0; }
+.zoom-images figcaption { font-size: 11px; color: var(--fg-dim); padding: 4px 0; }
+.zoom-images img { width: 100%; max-height: 85vh; object-fit: contain; background: #000; border-radius: 4px; }
+.zoom-hint { margin-top: 8px; text-align: center; }
+
+.shortcuts { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+.shortcuts td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.shortcuts td:first-child { width: 130px; }
+kbd {
+  background: var(--surface-2); border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 4px; padding: 1px 6px; font: 12px ui-monospace, Menlo, monospace;
+}
+
+.stats-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.stats-row:last-child { border-bottom: 0; }
+.stats-row--head { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.stats-bar { background: var(--surface-2); height: 8px; border-radius: 4px; overflow: hidden; margin: 2px 0 8px; }
+.stats-bar__fill { height: 100%; background: var(--accent); }
+
+/* -------------- Cleanup modal (етап A) -------------- */
+.modal__content--cleanup {
+  max-width: 98vw; max-height: 96vh; width: 98vw; height: 96vh;
+  padding: 10px 14px; display: flex; flex-direction: column;
+}
+.cleanup__header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 0 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.cleanup__header h2 { margin: 0; font-size: 16px; }
+.cleanup__stats { font-size: 12px; color: var(--fg-dim); font-variant-numeric: tabular-nums; }
+
+.cleanup__canvas-wrap {
+  position: relative; flex: 1; overflow: hidden;
+  background: #000; border-radius: 6px; min-height: 320px;
+  touch-action: none;
+}
+.cleanup__zoom {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.cleanup__canvas {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+/* Bug 1 (Day 9): базовий canvas — фотографія, тож гладке масштабування
+   (image-rendering: auto за замовчуванням), інакше фото блочне при зумі.
+   pixelated лишаємо лише для instance-масок — там чіткі межі ID корисні. */
+.cleanup__canvas--marks,
+.cleanup__canvas--groups { image-rendering: pixelated; }
+.cleanup__canvas--marks { pointer-events: none; }  /* base canvas ловить кліки */
+.cleanup__canvas--hidden { display: none; }         /* hit-test канвас */
+
+.cleanup__canvas-wrap.has-cursor-ok   #cleanupCanvasBase { cursor: pointer; }
+.cleanup__canvas-wrap.has-cursor-none #cleanupCanvasBase { cursor: default; }
+.cleanup__canvas-wrap.is-panning      #cleanupCanvasBase { cursor: grabbing; }
+.cleanup__canvas-wrap.can-pan         #cleanupCanvasBase { cursor: grab; }
+
+.cleanup__toolbar {
+  display: flex; align-items: center; gap: 10px;
+  /* Bug 3 (Day 9): правий gutter 160px — місце під закріплену Save-кнопку;
+     position:relative робить тулбар containing-block для .editor__save. */
+  padding: 10px 160px 10px 0;
+  position: relative;
+  border-top: 1px solid var(--border); margin-top: 10px;
+  flex-wrap: wrap;   /* щоб контроли не з'їдали ширину canvas-wrap на середніх вікнах */
+  /* Day 6 CP1: резервуємо висоту під найдовший варіант (groups з chips wrap),
+     щоб Tab switch Cleanup ⇄ Polygons ⇄ Groups не зрушував canvas-wrap. */
+  min-height: 130px;
+  align-content: flex-start;
+}
+/* Bug 3 (Day 9): первинна Save-кнопка закріплена внизу-праворуч тулбара —
+   не «з'їжджає» при flex-wrap, коли Day 4-6 додали кнопки/чіпи у Polygons
+   toolbar. Стабільна позиція на всіх 3 табах (Cleanup / Polygons / Groups). */
+.editor__save {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+}
+.cleanup__toolbar label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px;
+}
+.cleanup__toolbar input[type="range"] { width: 110px; }
+.cleanup__spacer { flex: 1; }
+
+.btn--mini { padding: 3px 9px; font-size: 11px; }
+.btn--mini-active {
+  background: var(--accent); border-color: var(--accent); color: #05121e;
+}
+.cleanup__bgtoggle { display: inline-flex; gap: 2px; }
+.cleanup__bgtoggle .btn--mini {
+  border-radius: 0;
+}
+.cleanup__bgtoggle .btn--mini:first-child { border-radius: 6px 0 0 6px; }
+.cleanup__bgtoggle .btn--mini:last-child  { border-radius: 0 6px 6px 0; }
+
+.cleanup__hint {
+  padding: 6px 0 2px; font-size: 12px;
+}
+.groups-stale-warn {
+  margin: 2px 0 6px; padding: 6px 10px;
+  background: rgba(224, 83, 58, 0.16);
+  border: 1px solid var(--danger, #e0533a);
+  border-radius: 6px; font-weight: 600; line-height: 1.4;
+}
+
+.btn--primary {
+  background: var(--accent-strong); border-color: var(--accent-strong); color: #fff;
+}
+.btn--primary:hover { background: var(--accent); }
+
+/* Cleanup-кнопка у variant header */
+.variant__cleanup {
+  background: transparent; border: 0; color: var(--fg-dim); cursor: pointer;
+  font-size: 16px; padding: 2px 6px; border-radius: 4px;
+}
+.variant__cleanup:hover { background: var(--surface-2); color: var(--fg); }
+.variant--selected .variant__cleanup { color: var(--selected); }
+
+/* -------------- Editor tabs (Stage C) -------------- */
+.editor__tabs {
+  display: inline-flex; gap: 2px; margin-left: 16px;
+}
+.tab {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--fg-dim);
+  padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  font-weight: 600;
+}
+.tab:hover { color: var(--fg); }
+.tab--active {
+  background: var(--accent); border-color: var(--accent); color: #05121e;
+}
+
+.cleanup__toolmode {
+  display: inline-flex; gap: 2px;
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+}
+.cleanup__toolmode .btn--mini { border-radius: 0; border: 0; }
+
+/* -------------- Polygon SVG overlay (Stage C) -------------- */
+.cleanup__svg {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  /* Без pointer-events: transparent по дефолту — кліки проходять до canvas.
+     Коли polygon-таб активний, JS додає клас .svg--active щоб svg ловив кліки. */
+  pointer-events: none;
+  overflow: visible;
+}
+.cleanup__svg.svg--active { pointer-events: all; }
+
+/* Markers (cleanup-режим — "дорозмітити") */
+.polygon-marker {
+  fill: rgba(255, 210, 60, 0.85);
+  stroke: #05121e; stroke-width: 1;
+  cursor: pointer;
+}
+.polygon-marker--hover { fill: #ffd23c; stroke-width: 1.5; }
+.polygon-marker--ghost {
+  fill: rgba(255, 210, 60, 0.35);
+  stroke: rgba(255, 210, 60, 0.55);
+  pointer-events: none;
+}
+
+/* Polygon shapes — весь розмітковий шар синій, solid, non-scaling-stroke
+   щоб при zoom контур лишався тонким і крипким (не пікселізувався). */
+.polygon-shape {
+  fill: rgba(110, 168, 255, 0.15);
+  stroke: rgba(110, 168, 255, 0.9);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+.polygon-shape--hover {
+  fill: rgba(110, 168, 255, 0.30);
+  stroke: #6ea8ff; stroke-width: 2;
+}
+.polygon-shape--selected {
+  fill: rgba(110, 168, 255, 0.32);
+  stroke: #9cc5ff; stroke-width: 2.5;
+}
+.polygon-shape--draft {
+  fill: rgba(110, 168, 255, 0.18);
+  stroke: #6ea8ff; stroke-width: 2;
+  pointer-events: none;
+}
+
+/* Vertices — теж сині, трохи крупніші (r обчислюється в JS) */
+.polygon-vertex {
+  fill: #6ea8ff; stroke: #05121e; stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  cursor: grab;
+}
+.polygon-vertex--hover { fill: #9cc5ff; stroke-width: 1.5; }
+.polygon-vertex--selected { fill: #cfe2ff; stroke: #05121e; stroke-width: 2; }
+.polygon-vertex--dragging { cursor: grabbing; }
+
+/* Draft edge (лінія до курсора під час малювання) — solid, crisp */
+.polygon-draft-edge {
+  stroke: #6ea8ff; stroke-width: 1.5; fill: none;
+  vector-effect: non-scaling-stroke; pointer-events: none;
+}
+
+/* Hold-O превʼю оригіналу: ховаємо cleanup-кольорний fill і всі polygon-шари,
+   щоб чисто побачити оригінальну картинку без жодних обведень. Маркери
+   залишаємо (вони не "обведення", а hint про пропущену клітину). */
+.cleanup__canvas-wrap.hold-orig #cleanupCanvasMarks { display: none !important; }
+.cleanup__canvas-wrap.hold-orig #polygonShapesLayer,
+.cleanup__canvas-wrap.hold-orig #polygonDraftLayer,
+.cleanup__canvas-wrap.hold-orig #polygonVerticesLayer { display: none !important; }
+/* Bug H fix (v1.16.1): hold-O ховає й покраску груп — mask-fill canvas
+   + SVG group-overlay layer. Раніше ховались лише cleanup marks + polygon
+   шари, а groupsMaskCanvas/groupsOverlayLayer лишались поверх оригіналу. */
+.cleanup__canvas-wrap.hold-orig #groupsMaskCanvas,
+.cleanup__canvas-wrap.hold-orig #groupsBoundaryLayer,
+.cleanup__canvas-wrap.hold-orig #groupsOverlayLayer { display: none !important; }
+
+/* 5b (v1.16.2): у Groups контур полігонів (#polygonShapesLayer — рендер з
+   Polygons-інструмента, показаний read-only) приглушуємо, щоб не змагався
+   яскравістю з group-fill і не відволікав під час групування. */
+.svg--groups #polygonShapesLayer { opacity: 0.9; }
+
+/* Polygon-overlay на головному гриді і в zoom-модалці — тонкий синій контур
+   без заливки, щоб не перекривати зображення. */
+.variant__polyoverlay,
+.zoom-figure__polyoverlay {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+/* Overlay на гриді/zoom — тонка червона обводка без заливки, колір такий самий
+   як у cellpose-overlay PNG (темний криваво-червоний), щоб polygon-контури
+   не "світилися" понад існуючі. Синій залишається всередині редактора. */
+.variant__polyoverlay polygon,
+.zoom-figure__polyoverlay polygon {
+  fill: none;
+  stroke: #b52a2a; stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+#zoomImages figure { position: relative; }
+.zoom-figure__img-wrap {
+  position: relative; display: block;
+  line-height: 0; /* прибираємо inline-gap під img */
+}
+.zoom-figure__img-wrap img { display: block; }
+
+/* Day 6: Lasso freehand path — Edit drag-empty multi-select (replaces rubber-band). */
+.polygon__lasso {
+  fill: rgba(110, 168, 255, 0.10);
+  stroke: #6ea8ff; stroke-width: 1.5;
+  stroke-dasharray: 4 3; vector-effect: non-scaling-stroke;
+  fill-rule: evenodd;
+  pointer-events: none;
+}
+
+/* Канвас кліки у polygon-режимі — вимкнено (svg ловить).
+   Тільки base canvas має pointer-events для pan в panning-моді. */
+.cleanup__canvas-wrap.polygon-mode #cleanupCanvasBase { cursor: crosshair; }
+.cleanup__canvas-wrap.polygon-mode.is-panning #cleanupCanvasBase { cursor: grabbing; }
+.cleanup__canvas-wrap.polygon-mode.can-pan #cleanupCanvasBase { cursor: grab; }
+
+/* -------------- Label picker (Stage B.2) -------------- */
+.label-picker {
+  position: relative;
+  display: flex; align-items: center;
+}
+.btn--label {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 8px; font-size: 12px;
+  border: 1px solid var(--border); border-radius: 4px;
+  background: var(--surface-2); cursor: pointer; white-space: nowrap;
+}
+.btn--label:hover { border-color: var(--accent); }
+.label-dot {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; flex-shrink: 0;
+  background: #4488ff;
+}
+/* Day 3b: was .label-picker__dropdown (160px, padding 4px 0).
+   Now popover root: holds items + reassign + advanced sections.
+   Opens UPWARD because editor toolbar sits at the bottom of the modal —
+   downward popover would clip below viewport (user feedback 2026-05-13). */
+.label-picker__popover {
+  position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 120;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  min-width: 220px; padding: 6px 0; overflow: visible;
+  display: flex; flex-direction: column;
+}
+.label-picker__items {
+  display: flex; flex-direction: column;
+  max-height: 40vh; overflow-y: auto;
+}
+.label-picker__section {
+  padding: 0 12px 8px;
+}
+.label-picker__section + .label-picker__section,
+.label-picker__items + .label-picker__section {
+  border-top: 1px solid var(--border);
+  margin-top: 6px; padding-top: 8px;
+}
+.label-picker__label {
+  display: block;
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 4px;
+}
+.label-picker__item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; cursor: pointer; font-size: 13px;
+  white-space: nowrap;
+}
+.label-picker__item:hover { background: var(--surface-3, #2a2a2a); }
+.label-picker__item--active { background: var(--surface-3, #2a2a2a); font-weight: 600; }
+.label-picker__shortcut {
+  margin-left: auto; color: var(--muted); font-size: 11px;
+}
+.label-select {
+  font-size: 12px; padding: 2px 6px;
+  background: var(--surface-2); color: var(--fg);
+  border: 1px solid var(--accent); border-radius: 4px; cursor: pointer;
+}
+
+/* Day 3b: read-only base indicator chip in polygons toolbar */
+.label-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 7px; font-size: 11px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px; color: var(--muted);
+  cursor: pointer; white-space: nowrap;
+}
+.label-chip:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--fg);
+}
+.label-chip .label-dot { width: 8px; height: 8px; }
+.label-chip__prefix { font-size: 10px; opacity: 0.7; }
+
+/* -------------- Labels Manager modal (Stage B.2) -------------- */
+.modal__content--labels {
+  width: 480px; max-width: 95vw;
+  display: flex; flex-direction: column; gap: 0;
+}
+.labels-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.labels-table th {
+  text-align: left; padding: 6px 8px;
+  border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 500;
+}
+.labels-table td { padding: 5px 8px; vertical-align: middle; }
+.labels-table tr + tr td { border-top: 1px solid var(--border); }
+.label-color-input {
+  width: 32px; height: 24px; padding: 0; border: none;
+  border-radius: 3px; cursor: pointer; background: none;
+}
+.label-name-input {
+  width: 140px; padding: 3px 6px; font-size: 13px;
+  background: var(--surface-1, #111); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.label-name-input:focus { border-color: var(--accent); outline: none; }
+.label-shortcut-select {
+  width: 60px; padding: 3px 4px; font-size: 12px;
+  background: var(--surface-2); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.label-delete-btn {
+  background: none; border: none; color: var(--danger, #e05);
+  cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;
+}
+.label-delete-btn:hover { opacity: 0.7; }
+.labels-actions {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* SVG shape stroke via CSS var (set by JS per-shape) */
+.poly-shape { fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.poly-shape--selected { stroke-width: 2.5; }
+
+/* -------------- Toast (етап A) -------------- */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px);
+  background: var(--surface-2); color: var(--fg); padding: 10px 16px;
+  border-radius: 6px; border: 1px solid var(--border);
+  font-size: 13px; box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms, transform 180ms; z-index: 200;
+}
+.toast--visible { opacity: 1; transform: translate(-50%, 0); }
+.toast--ok  { border-color: var(--ok); }
+.toast--err { border-color: var(--danger); color: var(--fg); }
+
+/* -------------- Groups tab (Day 4-5 cell grouping) -------------- */
+/* Chip list — contained inside .editor__toolbar--groups, flex-wraps to next line. */
+.groups-chips {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  flex-basis: 100%;          /* нова "лінія" toolbar — chips під buttons */
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  margin-top: 4px;
+}
+.groups-chips:empty::before {
+  content: "Немає груп — натисни ＋ Нова щоб створити.";
+  color: var(--muted); font-size: 12px; padding: 2px 4px;
+}
+.group-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; font-size: 11px;
+  /* Round 5.1: HSL з 3 inline CSS vars (--gh-hue/--gh-sat/--gh-light)
+     — щоб hover/active state теж відображав per-group jitter, а не лише hue. */
+  background: hsla(var(--gh-hue, 0), var(--gh-sat, 70%), var(--gh-light, 45%), 0.22);
+  border: 1px solid hsla(var(--gh-hue, 0), var(--gh-sat, 70%),
+                         calc(var(--gh-light, 45%) + 12%), 0.65);
+  border-radius: 4px; color: var(--fg);
+  cursor: pointer; white-space: nowrap;
+  transition: background 100ms, border-color 100ms, box-shadow 100ms;
+}
+.group-chip:hover {
+  background: hsla(var(--gh-hue, 0), var(--gh-sat, 70%),
+                   calc(var(--gh-light, 45%) + 5%), 0.35);
+}
+.group-chip--active {
+  border-width: 2px;
+  border-color: hsl(var(--gh-hue, 0), calc(var(--gh-sat, 70%) + 10%),
+                    calc(var(--gh-light, 45%) + 20%));
+  box-shadow: 0 0 0 2px hsla(var(--gh-hue, 0), calc(var(--gh-sat, 70%) + 10%),
+                              calc(var(--gh-light, 45%) + 20%), 0.55),
+              0 0 8px 1px hsla(var(--gh-hue, 0), calc(var(--gh-sat, 70%) + 10%),
+                                calc(var(--gh-light, 45%) + 20%), 0.35);
+  padding: 2px 8px;
+  background: hsla(var(--gh-hue, 0), var(--gh-sat, 70%),
+                   var(--gh-light, 45%), 0.42);
+  font-weight: 600;
+}
+.group-chip--invalid {
+  /* Round 5: червоний пунктир + м'яка пульсація — не пропустиш */
+  border-style: dashed;
+  border-color: var(--danger, #e0524f) !important;
+  box-shadow: 0 0 0 1px rgba(224, 82, 79, 0.45);
+  animation: chip-invalid-pulse 2.4s ease-in-out infinite;
+}
+.group-chip--active.group-chip--invalid {
+  animation: chip-invalid-pulse 1.4s ease-in-out infinite;
+}
+@keyframes chip-invalid-pulse {
+  0%,100% { box-shadow: 0 0 0 1px rgba(224,82,79,0.45); }
+  50%     { box-shadow: 0 0 0 2px rgba(224,82,79,0.85),
+                        0 0 6px 1px rgba(224,82,79,0.35); }
+}
+
+/* Round 5: boundary stroke layer — над mask canvas, високий z. */
+.groups-boundary--active { /* білий контур для активних instance */ }
+.groups-boundary--rogue { /* червоний контур для порушників constraints */ }
+.group-chip__dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  /* Round 5.1: повний HSL з jitter, не лише hue — щоб dot відображав
+     реальну варіацію (темніший/світліший зелений тощо). */
+  background: hsl(var(--gh-hue, 0), var(--gh-sat, 70%), var(--gh-light, 50%));
+  border: 1px solid hsla(0, 0%, 100%, 0.3);
+  flex-shrink: 0;
+}
+.group-chip__name { font-weight: 500; }
+.group-chip__count {
+  font-size: 10px; opacity: 0.75; padding-left: 2px;
+}
+.group-chip__badge {
+  font-size: 10px; margin-left: 2px;
+}
+.group-chip__badge--ok    { color: var(--ok); }
+.group-chip__badge--invalid { color: var(--danger); }
+.group-chip__fix {
+  margin-left: 4px; font-size: 13px;
+  padding: 0 2px; border-radius: 3px;
+  cursor: pointer; line-height: 1;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 100ms;
+}
+.group-chip__fix:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+/* Groups SVG overlay layer — щоб не блокував кліки коли activeTab !== "groups". */
+#groupsOverlayLayer { pointer-events: none; mix-blend-mode: multiply; }
+.svg--groups #groupsOverlayLayer { pointer-events: auto; }
+
+/* Groups mask-fill canvas — pixel-level tinted masks поверх base. */
+.cleanup__canvas--groups {
+  pointer-events: none;
+  mix-blend-mode: multiply;     /* щоб muted/deep кольори натуральніше лягали */
+}
+
+/* Group Classes Manager modal — wider for constraint inputs */
+.modal__content--wide { width: 720px; max-width: 95vw; }
+.group-classes-table input[type="text"] {
+  width: 100%; padding: 3px 6px; font-size: 12px;
+  background: var(--surface-2); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 3px;
+}
+.group-classes-table .gc-color-cell {
+  display: flex; align-items: center; gap: 6px;
+}
+.group-classes-table .gc-color-swatch {
+  width: 24px; height: 24px; border-radius: 4px;
+  border: 1px solid var(--border); flex-shrink: 0;
+}
+.group-classes-table .gc-hue-slider {
+  width: 70px; height: 6px; vertical-align: middle;
+}

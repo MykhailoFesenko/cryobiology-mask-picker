@@ -1,0 +1,53 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+.env
+
+# ── IDE / OS / local ──
+.idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db
+
+# ── Дані (великі / замовницькі) — тримати локально / на Google Drive, НЕ в репо ──
+/data/
+/cryobiology4/weights/
+
+# ── Scratch / архіви / staging / прогрес-історія ──
+# (лишаються на диску локально як історія/датасети, але НЕ потрапляють у публічний репо)
+/_archive/
+/_send/
+/_inbox/
+/_tmp/
+/_backups/
+/_logs/
+/merge_it/
+/test_inveriment/
+/mask_groups_test_*/
+/group_overlay_index_*/
+group_overlay_index*.html
+overlay_index.html
+
+# ── Особисте / академічне (не стосується софту) ──
+/ПЗ/
+/для_мене/
+
+# ── Внутрішні process-доки (handoff/історія — лишаються локально для прогресу) ──
+/docs/_internal/
+/tools/legacy/
+
+# ── Сміття всередині вендор-пакета cellsegkit (не код) ──
+/shared/cellsegkit/*.rar
+/shared/cellsegkit/*.docx
+
+# ── Великі архіви ──
+*.zip
+*.7z
+
+# ── Конфіг із локальними шляхами (за бажанням; шаблон — config.example.yaml) ──
+# apps/mask_picker/config.yaml

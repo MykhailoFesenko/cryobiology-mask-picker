@@ -1,0 +1,58 @@
+# Mask Picker — конфіг.
+#
+# Якщо цей файл видалити або залишити з усім закоментованим — тулза піде в режим
+# AUTO-DISCOVERY: буде шукати моделі як підпапки у output_root з підпапкою overlay/
+# всередині.
+#
+# Шляхи можуть бути як абсолютні, так і відносні до цього файла.
+# Структура проєкту:
+#   apps/mask_picker/  ← цей файл тут
+#   data/<dataset>/    ← дані (поточний: vesicles_good)
+#
+# --- Як підключити іншу папку з даними ---
+#  Варіант 1 (постійний): помінять `vesicles_good` нижче на іншу назву папки в data/.
+#  Варіант 2 (тимчасовий, без edit): запустити з --workspace PATH:
+#      python apps/mask_picker/app.py --workspace data/2026-06-01_dataset
+#  Варіант 3 (через UI): кнопка «Змінити» у workspace bar відкриває picker.
+
+# --- Де лежать фото-оригінали ---
+images_dir: ../../data/vesicles_good/images
+
+# --- Де лежать виходи моделей ---
+#
+# Очікувана структура всередині:
+#     <output_root>/<model_name>/overlay/<stem>.png
+#     <output_root>/<model_name>/png/<stem>.png        (опц.)
+#     <output_root>/<model_name>/npy/<stem>.npy        (опц.)
+#     <output_root>/<model_name>/yolo/<stem>.txt       (опц.)
+output_root: ../../data/vesicles_good/output
+
+# --- Куди копіювати обрані файли ---
+# Кожна обрана маска копіюється у selected_dir/<model>/<формат>/
+# Жодні файли НІКОЛИ не видаляються — лише копіюються.
+selected_dir: ../../data/vesicles_good/selected
+
+# --- Куди записувати маркери пропущених фото ---
+skipped_dir: ../../data/vesicles_good/skipped
+
+# --- Які формати копіювати в selected ---
+# Якщо якогось формату нема — він просто ігнорується без помилки.
+formats_to_copy:
+  - overlay
+  - png
+  - npy
+  - yolo
+
+# --- Дедуплікація "Копия db_img_XXXX" ---
+# Якщо true — тулза трактує "Копия *.jpg" та "*.jpg" як одне фото.
+deduplicate_by_stem: true
+
+# --- Явне перерахування моделей (опціонально) ---
+# Якщо цей блок закоментовано — працює auto-discovery.
+# Якщо розкоментувати — auto-discovery вимикається і тулза бере ТІЛЬКИ перелічене.
+#
+# models:
+#   - name: cyto2
+#     dir: ../../data/vesicles_good/output/cyto2
+#   - name: instanseg
+#     dir: ../../data/vesicles_good/output/instanseg

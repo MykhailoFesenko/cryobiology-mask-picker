@@ -1,0 +1,17 @@
+{
+  "_comment": "Ваги ML-моделей НЕ зберігаються в git (1.8 ГБ; GitHub блокує файли >100MB). Вони лежать як assets у GitHub Release і завантажуються АВТОМАТИЧНО при першому запуску сегментації (tools/download_weights.py). ЗАПОВНИ release_base_url нижче (або встанови env CRYOBIOLOGY_WEIGHTS_URL) — після того як створиш Release і завантажиш файли як assets.",
+  "release_base_url": "https://github.com/<USER>/<REPO>/releases/download/v2.0.0/",
+  "dest_dir": "cryobiology4/weights",
+  "files": [
+    {"asset": "cpsam_finetuned.pth",            "dest": "cpsam_finetuned.pth",            "size_mb": 1176, "models": ["cpsam_finetuned"]},
+    {"asset": "Instanseg-Neuroblastoma-v3.1.pt", "dest": "Instanseg-Neuroblastoma-v3.1.pt", "size_mb": 15,   "models": ["instanseg_neuroblastoma"]},
+    {"asset": "instanseg_20250605.pt",          "dest": "instanseg_20250605.pt",          "size_mb": 15,   "models": ["instanseg_0605"]},
+    {"asset": "YOLO11x-512-seg.pt",             "dest": "YOLO11x-512-seg.pt",             "size_mb": 238,  "models": ["yolo11_512"]},
+    {"asset": "YOLO11x-680-seg.pt",             "dest": "YOLO11x-680-seg.pt",             "size_mb": 119,  "models": ["yolo11_680"]},
+    {"asset": "YOLO11x-sphero-seg.pt",          "dest": "YOLO11x-sphero-seg.pt",          "size_mb": 119,  "models": ["yolo11_sphero"]},
+    {"asset": "yolov8m-det.onnx",               "dest": "yolov8m-det.onnx",               "size_mb": 99,   "models": []}
+  ],
+  "archives": [
+    {"asset": "stardist0602.zip", "dest_dir": "stardist0602", "size_mb": 12, "models": ["stardist_0602"]}
+  ]
+}

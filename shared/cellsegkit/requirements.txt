@@ -1,0 +1,36 @@
+# Core dependencies
+cellpose>=2.2.0
+numpy>=1.19.0
+opencv-python>=4.5.0
+pillow>=8.0.0
+matplotlib>=3.3.0
+scikit-image>=0.18.0
+torch>=1.7.0
+torchvision>=0.8.0
+
+# For CellSAM support
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@dca509fe793f601edb92606367a655c15ac00fdf
+# Note: cellSAM may require special installation instructions
+cellSAM
+
+# For YOLO format support
+ultralytics>=8.0.0
+
+# System monitoring
+psutil>=5.9.0
+pynvml>=11.0.0
+
+# Development dependencies (optional)
+pytest>=6.0.0
+black>=21.5b2
+isort>=5.9.1
+flake8>=3.9.2
+
+# For InstanSeg support (winner of Cryobiology III — best F1 on nuclei)
+# pip install instanseg
+instanseg>=0.1.0
+
+# For StarDist 2D support (runner-up in Cryobiology III)
+# pip install stardist csbdeep
+stardist>=0.8.5
+csbdeep>=0.7.4

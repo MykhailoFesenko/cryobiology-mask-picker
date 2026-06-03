@@ -1,0 +1,29 @@
+Cryobiology V — Cell Mask Annotation Pipeline (Mask Picker & Segmentation)
+Copyright 2026 <COPYRIGHT HOLDER — впиши своє ім'я / нік / організацію>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+see the LICENSE file. You may obtain a copy at:
+    http://www.apache.org/licenses/LICENSE-2.0
+
+================================================================================
+THIRD-PARTY / BORROWED COMPONENTS
+================================================================================
+
+cellsegkit (vendored under shared/cellsegkit/)
+  Cell segmentation + export toolkit from the previous-generation project
+  "Cryobiology III": https://github.com/nazarzharskyi/cryobiology3
+  Author: Fedir Yarovyi. License: MIT.
+  Used here for: deliverable mask rendering/export (bake) and the segmentation
+  model factory (apps/segmentation). The interactive editing/grouping logic of
+  Mask Picker is original to this project (see docs/architecture/13).
+  The upstream MIT license text ships inside shared/cellsegkit/.
+
+Segmentation models (invoked via their own packages; respective licenses apply):
+  - Cellpose            (cyto2 / cyto / nuclei)
+  - InstanSeg           (instanseg, instanseg-torch)
+  - StarDist + CSBDeep  (stardist)
+  - Ultralytics YOLO    (yolo11_*)
+  - Segment Anything (SAM) / CellSAM
+
+Model weights (custom Cryobiology IV finetunes, ~1.8 GB) are NOT distributed in
+this repository; obtain them separately (see README) and place in cryobiology4/weights/.

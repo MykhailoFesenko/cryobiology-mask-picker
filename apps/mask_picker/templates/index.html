@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mask Picker — Cryobiology</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__title">
+      <span class="logo">🔬</span>
+      <span>Mask Picker</span>
+      <span class="muted" id="projectBadge"></span>
+    </div>
+    <div class="topbar__progress">
+      <div class="progress">
+        <div class="progress__fill" id="progressFill"></div>
+      </div>
+      <div class="progress__label" id="progressLabel">—</div>
+    </div>
+    <div class="topbar__workspace" id="workspaceBar" style="display:none">
+      <span class="muted" id="workspacePath" title="Workspace folder"></span>
+      <button id="btnChangeWorkspace" class="btn btn--ghost btn--sm"
+              title="Вибрати іншу workspace-папку">Змінити</button>
+      <input type="file" id="importFileInput" multiple accept=".jpg,.jpeg,.png,.zip" style="display:none" />
+      <button id="btnImport" class="btn btn--ghost btn--sm" title="Імпортувати фото / ZIP у workspace">📥 Імпорт</button>
+      <button id="btnBakeAll" class="btn btn--primary btn--sm" title="Запекти у selected/ усі фото з незапеченими змінами (жовта крапка)">💾 Зберегти все</button>
+      <label class="muted bake-scratch" title="Перепекти ВСІ обрані фото з нуля (не лише змінені). Потрібно після зміни класів у labels.json або якщо selected/ зіпсувалось. Повільно."><input type="checkbox" id="bakeFromScratch"> з нуля</label>
+      <button id="btnExport" class="btn btn--ghost btn--sm" title="Експорт: вибір фото, фіналізація, розбиття на частини">📤 Експорт</button>
+    </div>
+    <div class="topbar__user">
+      <label for="userInput" class="muted">Хто розмічає:</label>
+      <input id="userInput" type="text" placeholder="your_name" />
+      <button id="btnBulkUser" class="btn btn--ghost btn--sm" title="Призначити анотатора діапазону фото">👤</button>
+      <button id="btnLabels" class="btn btn--ghost" title="Менеджер класів (лейблів)">🏷 Labels</button>
+      <button id="btnStats" class="btn btn--ghost" title="Показати статистику">📊</button>
+      <button id="btnHelp" class="btn btn--ghost" title="Гарячі клавіші">?</button>
+      <button id="btnQuit" class="btn btn--ghost btn--quit" title="Закрити Mask Picker (зупинити сервер)">✕</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <span>Список фото</span>
+        <div class="filters">
+          <button class="chip chip--active" data-filter="all">Все</button>
+          <button class="chip" data-filter="unreviewed">Чекають</button>
+          <button class="chip" data-filter="selected">Обрано</button>
+          <button class="chip" data-filter="skipped">Пропущ.</button>
+          <button class="chip" data-filter="excluded" title="Прибрані з датасету">🗑</button>
+        </div>
+      </div>
+      <div id="imageList" class="image-list"></div>
+    </aside>
+
+    <section class="workspace" id="workspace">
+      <div class="workspace__toolbar">
+        <button id="btnPrev" class="btn" title="Попереднє (←)">← Назад</button>
+        <button id="btnExclude" class="btn btn--quit" title="Прибрати з датасету (перенести в _excluded/)">🗑 Видалити</button>
+        <div class="workspace__filename" id="currentName">—</div>
+        <button id="btnSkip" class="btn btn--warn" title="Пропустити (S або Space)">⊘ Пропустити</button>
+        <button id="btnHardReset" class="btn btn--quit" title="Видалити всі правки для цього фото: state + polygons + selected/ (Shift+U). Бекап у _backups/.">💥 Hard Reset</button>
+        <button id="btnNext" class="btn" title="Наступне (→)">Далі →</button>
+      </div>
+
+      <div class="variants" id="variants">
+        <!-- заповнюється JS -->
+      </div>
+
+      <div class="hint" id="stateHint"></div>
+    </section>
+  </main>
+
+  <!-- ================ MODAL: zoom ================ -->
+  <div class="modal" id="zoomModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--zoom">
+      <button class="modal__close" data-close>×</button>
+      <div class="zoom-title" id="zoomTitle"></div>
+      <div class="zoom-images" id="zoomImages"></div>
+      <div class="zoom-hint muted">Клік по зображенню щоб закрити. Колесо миші — зум.</div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: stats ================ -->
+  <div class="modal" id="statsModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content">
+      <button class="modal__close" data-close>×</button>
+      <h2>Статистика відбору</h2>
+      <div id="statsBody">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: export (Day 8.5 rework) ================ -->
+  <div class="modal" id="exportModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--export">
+      <button class="modal__close" data-close>×</button>
+      <h2>📤 Експорт</h2>
+      <div class="export__rangefilter">
+        <span class="muted">Швидкий вибір діапазону:</span>
+        від <input type="number" id="exportRangeFrom" min="0" />
+        до <input type="number" id="exportRangeTo" min="0" />
+        <button id="exportRangeApply" class="btn btn--sm">Відмітити</button>
+      </div>
+      <label class="export__selall">
+        <input type="checkbox" id="exportSelectAll" /> Обрати всі
+        <span id="exportSelCount" class="muted"></span>
+      </label>
+      <div id="exportPhotoList" class="export__list"></div>
+      <div class="export__opts">
+        <label>
+          <input type="checkbox" id="exportFinalize" />
+          Фіналізувати — запекти обрані фото перед експортом
+        </label>
+        <label>
+          <input type="checkbox" id="exportSplitOn" />
+          Розбити на
+          <input type="number" id="exportSplitN" value="3" min="2" max="20" />
+          частин (task-pack для роздачі команді)
+        </label>
+        <label>
+          <input type="checkbox" id="exportMasks" />
+          Додати маски — semantic (nucleus/vesicle) + group-instance (cell/cluster/nuclei)
+        </label>
+      </div>
+      <div class="export__dest">
+        <span class="muted">Зберегти у:</span>
+        <input type="text" id="exportDest"
+               placeholder="(порожньо — завантаження браузером)" />
+        <button id="exportDestPick" class="btn btn--sm">Огляд…</button>
+        <button id="exportDestClear" class="btn btn--sm btn--ghost"
+                title="Очистити — повернути завантаження браузером">✕</button>
+      </div>
+      <div class="export__footer">
+        <button class="btn" data-close>Скасувати</button>
+        <button id="exportApply" class="btn btn--primary">Експортувати</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: bulk-user range (Day 8.5) ================ -->
+  <div class="modal" id="bulkUserModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--bulkuser">
+      <button class="modal__close" data-close>×</button>
+      <h2>👤 Анотатор діапазону</h2>
+      <p class="muted">
+        Запиши, хто розмітив діапазон фото. Діє лише на фото з рішенням
+        (Pick / Skip) — решта пропускається.
+      </p>
+      <div class="bulkuser__field">
+        <label for="bulkUserName">Ім'я анотатора</label>
+        <input type="text" id="bulkUserName" placeholder="напр. annotator" />
+      </div>
+      <div class="bulkuser__field">
+        <label>Діапазон №</label>
+        <span>від <input type="number" id="bulkUserFrom" min="0" /></span>
+        <span>до <input type="number" id="bulkUserTo" min="0" /></span>
+        <span id="bulkUserCount" class="muted"></span>
+      </div>
+      <div class="bulkuser__footer">
+        <button class="btn" data-close>Скасувати</button>
+        <button id="bulkUserApply" class="btn btn--primary">Призначити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: merge import range-picker (Day 8) ============ -->
+  <div class="modal" id="importMergeModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--import">
+      <button class="modal__close" data-close>×</button>
+      <h2>📥 Імпорт — вибір діапазону фото</h2>
+      <p class="muted">
+        Для кожного джерела вкажи діапазон номерів фото, які імпортувати.
+        Стан фото з ZIP перезаписує локальний (imported wins). Фото поза
+        діапазоном і ті, яких нема в ZIP — недоторкані.
+      </p>
+      <div id="importMergeBody"></div>
+      <div class="import-merge__footer">
+        <button id="importMergeCancel" class="btn" data-close>Скасувати</button>
+        <button id="importMergeApply" class="btn btn--primary">Імпортувати</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: Save All / bake-all (Day 7) ================ -->
+  <!-- Backdrop без data-close: під час запікання модалку не можна закрити
+       кліком повз — лише кнопкою, яка активується після завершення. -->
+  <div class="modal" id="bakeAllModal">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content modal__content--bake">
+      <h2 id="bakeAllTitle">💾 Запікання у selected/</h2>
+      <p id="bakeAllIntro" class="bake__intro">
+        Запікаю всі фото зі змінами у фінальні маски. Це може зайняти кілька
+        хвилин — будь ласка, не закривай вкладку до завершення.
+      </p>
+      <div class="bake__row">
+        <div class="bake__rowlabel">
+          <span>Фото</span><span id="bakePhotoText">0 / 0</span>
+        </div>
+        <div class="progress progress--bake">
+          <div class="progress__fill" id="bakePhotoFill"></div>
+        </div>
+      </div>
+      <div class="bake__row">
+        <div class="bake__rowlabel">
+          <span id="bakeInstName">Поточне фото</span><span id="bakeInstText">—</span>
+        </div>
+        <div class="progress progress--bake">
+          <div class="progress__fill progress__fill--inst" id="bakeInstFill"></div>
+        </div>
+      </div>
+      <div id="bakeAllStatus" class="bake__status"></div>
+      <div class="bake__footer">
+        <button id="bakeAllClose" class="btn btn--primary" disabled>Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: help ================ -->
+  <div class="modal" id="helpModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content">
+      <button class="modal__close" data-close>×</button>
+      <h2>Гарячі клавіші</h2>
+      <table class="shortcuts">
+        <tr><td><kbd>1</kbd>…<kbd>9</kbd></td><td>Обрати варіант №N</td></tr>
+        <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Попереднє / Наступне фото</td></tr>
+        <tr><td><kbd>S</kbd> або <kbd>Space</kbd></td><td>Пропустити фото</td></tr>
+        <tr><td><kbd>U</kbd></td><td>Скинути рішення по поточному фото</td></tr>
+        <tr><td><kbd>C</kbd></td><td>Відкрити Cleanup (чистка інстансів обраної маски)</td></tr>
+        <tr><td><kbd>Z</kbd></td><td>Порівняти всі варіанти у великому вікні</td></tr>
+        <tr><td><kbd>O</kbd> (утримати)</td><td>Показати оригінал на місці <b>всіх</b> варіантів одночасно — швидке порівняння (працює й у zoom-вікні)</td></tr>
+        <tr><td><kbd>?</kbd></td><td>Ця довідка</td></tr>
+      </table>
+      <p class="muted">
+        Натиснувши <b>1</b>, <b>2</b> тощо — миттєво фіксуєш вибір і переходиш до наступного
+        фото. Решта варіантів маски <b>залишаються на місці</b> (для статистики).
+      </p>
+      <h3 style="margin-top:16px;">У режимі Cleanup</h3>
+      <table class="shortcuts">
+        <tr><td><kbd>ЛКМ</kbd> по інстансу</td><td>Reject-режим: позначити як "викинути" / повернути</td></tr>
+        <tr><td><kbd>R</kbd> / <kbd>M</kbd></td><td>Reject-інструмент / Marker-інструмент (📍 "тут треба дорозмітити")</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Redo</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Зберегти і закрити</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Закрити без збереження (поточний батч буде втрачено)</td></tr>
+        <tr><td><kbd>O</kbd> (утримати)</td><td>Показати оригінал як фон поки затиснуто (відпустив — повертається overlay)</td></tr>
+        <tr><td>Колесо миші</td><td>Зум (курсор = центр)</td></tr>
+        <tr><td>ПКМ / СКМ / <kbd>Space</kbd>+drag</td><td>Панорама</td></tr>
+        <tr><td><kbd>0</kbd></td><td>Скинути зум до 100%</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>Перемкнути таб Cleanup ⇄ Polygons</td></tr>
+      </table>
+      <h3 style="margin-top:16px;">У режимі Polygons (Stage C)</h3>
+      <table class="shortcuts">
+        <tr><td><kbd>1</kbd>…<kbd>9</kbd></td><td>Перемкнути активний клас (лейбл) для нових полігонів</td></tr>
+        <tr><td><kbd>D</kbd> / <kbd>E</kbd></td><td>Інструмент: Draw / Edit</td></tr>
+        <tr><td><kbd>ЛКМ</kbd> (Draw)</td><td>Поставити вершину. Перший клік починає новий полігон.</td></tr>
+        <tr><td><kbd>Shift</kbd>+drag (Draw)</td><td>Freehand — вершини ставляться автоматично з інтервалом</td></tr>
+        <tr><td><kbd>Enter</kbd> / dblclick (Draw)</td><td>Замкнути полігон</td></tr>
+        <tr><td><kbd>Esc</kbd> (Draw)</td><td>Скасувати поточний полігон</td></tr>
+        <tr><td><kbd>Backspace</kbd> (Draw)</td><td>Прибрати останню вершину</td></tr>
+        <tr><td><kbd>ЛКМ</kbd> drag (Edit)</td><td>Перетягнути вершину; по порожньому — lasso multi-select (Shift додати, Alt відняти)</td></tr>
+        <tr><td><kbd>Shift</kbd>+<kbd>ЛКМ</kbd> (Edit)</td><td>Додати/прибрати вершину з вибору</td></tr>
+        <tr><td>dblclick на ребрі (Edit)</td><td>Вставити вершину</td></tr>
+        <tr><td><kbd>Alt</kbd>+<kbd>ЛКМ</kbd> по вершині</td><td>Видалити вершину</td></tr>
+        <tr><td><kbd>Delete</kbd></td><td>Видалити вибрані вершини; якщо полігон виділено повністю — весь полігон</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Undo / Redo</td></tr>
+        <tr><td><kbd>Enter</kbd> (Edit)</td><td>Зберегти і закрити</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Зняти вибір / закрити модалку</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: labels manager ================ -->
+  <div class="modal" id="labelsModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--labels">
+      <button class="modal__close" data-close>×</button>
+      <h2>Менеджер класів</h2>
+      <p class="muted" style="margin:0 0 12px">Класи використовуються для полігонів. Клавіші 1–9 перемикають активний клас під час малювання.</p>
+      <div id="labelsListWrap">
+        <table class="labels-table">
+          <thead><tr><th>Колір</th><th>Назва</th><th>Клавіша</th><th></th></tr></thead>
+          <tbody id="labelsList">
+            <!-- рядки заповнює JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="labels-actions">
+        <button id="btnAddLabel" class="btn btn--ghost">+ Додати клас</button>
+        <div style="flex:1"></div>
+        <button id="btnSaveLabels" class="btn btn--primary">💾 Зберегти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: Group Classes Manager (Day 4-5 v2 redesign) ================ -->
+  <div class="modal" id="groupClassesModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--labels modal__content--wide">
+      <button class="modal__close" data-close>×</button>
+      <h2>🔗 Менеджер класів груп</h2>
+      <p class="muted" style="margin:0 0 12px">
+        Кожна група клітини належить до класу. Клас має базовий колір
+        (відтінки міняються між групами одного класу) та опційні правила
+        мінімум/максимум кількості міток. Constraints формат: <code>label=N, label2=N</code>.
+      </p>
+      <div id="groupClassesListWrap">
+        <table class="labels-table group-classes-table">
+          <thead><tr>
+            <th>Колір</th>
+            <th>Назва</th>
+            <th title="Мінімум кожного label: nucleus=1, vesicle=1">Min</th>
+            <th title="Максимум кожного label: nucleus=0">Max</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="groupClassesList"><!-- JS --></tbody>
+        </table>
+      </div>
+      <div class="labels-actions">
+        <button id="btnAddGroupClass" class="btn btn--ghost">+ Додати клас</button>
+        <div style="flex:1"></div>
+        <button id="btnSaveGroupClasses" class="btn btn--primary">💾 Зберегти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: multi-class seed (v1.6.0) ================ -->
+  <div class="modal" id="multiSeedModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--labels">
+      <button class="modal__close" data-close>×</button>
+      <h2>🎯 Multi-class seed</h2>
+      <p class="muted" style="margin:0 0 12px">
+        Для кожного класу — своя модель-джерело (напр. <code>nucleus</code> з
+        однієї моделі, <code>vesicle</code> з іншої). Постав <b>галочку</b> на
+        класи які хочеш seed-ити; усі моделі за замовчуванням = поточна обрана.
+        IoU&gt;60% між новим і існуючим полігоном → skipped.
+      </p>
+      <div id="multiSeedListWrap">
+        <table class="labels-table">
+          <thead><tr><th>Клас</th><th>Модель</th><th>Активно</th></tr></thead>
+          <tbody id="multiSeedList"><!-- JS --></tbody>
+        </table>
+      </div>
+      <div class="labels-actions">
+        <label style="display:flex;gap:6px;align-items:center" title="Замінити поточні полігони замість додавання">
+          <input type="checkbox" id="multiSeedReplace"> Замінити поточні
+        </label>
+        <div style="flex:1"></div>
+        <span id="multiSeedCounter" class="muted" style="margin-right:8px;font-size:12px">0 активних</span>
+        <button id="btnMultiSeedApply" class="btn btn--primary">🎯 Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: editor (Cleanup + Polygons, Stage A + C) ================ -->
+  <div class="modal" id="cleanupModal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__content modal__content--cleanup">
+      <button class="modal__close" data-close>×</button>
+      <div class="cleanup__header">
+        <h2 id="cleanupTitle">Editor: —</h2>
+        <div class="editor__tabs" role="tablist">
+          <button class="tab tab--active" data-tab="cleanup" role="tab">🧹 Cleanup</button>
+          <button class="tab" data-tab="polygons" role="tab">✏️ Polygons</button>
+          <button class="tab" data-tab="groups" role="tab">🔗 Groups</button>
+        </div>
+        <div class="cleanup__stats" id="cleanupStats">—</div>
+      </div>
+      <div class="cleanup__canvas-wrap" id="cleanupCanvasWrap">
+        <div class="cleanup__zoom" id="cleanupZoom">
+          <canvas id="cleanupCanvasBase"   class="cleanup__canvas"></canvas>
+          <canvas id="cleanupCanvasMarks"  class="cleanup__canvas cleanup__canvas--marks"></canvas>
+          <!-- Groups mask-fill canvas (Day 4-5 v2): tinted instance masks per group -->
+          <canvas id="groupsMaskCanvas"    class="cleanup__canvas cleanup__canvas--groups" style="display:none"></canvas>
+          <!-- hit-test canvas — прихований, тільки для getImageData() -->
+          <canvas id="cleanupCanvasHit"    class="cleanup__canvas cleanup__canvas--hidden"></canvas>
+          <!-- SVG overlay для polygon-режиму (vertices, edges, markers, lasso).
+               pointer-events керовано з JS — коли polygon-таб активний, svg ловить кліки. -->
+          <svg id="polygonSvg" class="cleanup__svg" xmlns="http://www.w3.org/2000/svg"
+               preserveAspectRatio="none">
+            <g id="polygonMarkersLayer"></g>
+            <g id="polygonShapesLayer"></g>
+            <g id="polygonDraftLayer"></g>
+            <g id="polygonVerticesLayer"></g>
+            <!-- Groups overlay (Day 4-5): HSL fill per group, populated by groups mixin -->
+            <g id="groupsOverlayLayer"></g>
+            <!-- Round 5: active+rogue iid edge highlight (white/red contour
+                 верхній шар над mask canvas, не блокує кліки). -->
+            <g id="groupsBoundaryLayer" style="pointer-events:none"></g>
+            <!-- Day 6: lasso freehand path (Edit drag-empty multi-select; rubber-band прибрано). -->
+            <path id="polygonLasso" class="polygon__lasso" d="" style="display:none" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- ===== TOOLBAR: Cleanup ===== -->
+      <div class="cleanup__toolbar editor__toolbar editor__toolbar--cleanup">
+        <button id="cleanupUndo" class="btn" title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button id="cleanupRedo" class="btn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+        <div class="cleanup__spacer"></div>
+        <div class="cleanup__bgtoggle" role="group">
+          <button class="btn btn--mini" data-bg="original" title="Зафіксувати оригінал як фон">Оригінал</button>
+          <button class="btn btn--mini btn--mini-active" data-bg="overlay" title="Зафіксувати overlay як фон">Overlay</button>
+        </div>
+        <label class="muted">
+          <input type="checkbox" id="cleanupShowMask" checked /> Показати маску
+        </label>
+        <label class="muted">
+          Прозорість <input type="range" id="cleanupOpacity" min="0" max="100" value="45" />
+        </label>
+        <button class="btn btn--ghost btn--mini" id="cleanupZoomReset" title="Скинути зум (1:1)">⤢ 100%</button>
+        <div class="cleanup__spacer"></div>
+        <div class="cleanup__toolmode" role="group" title="Інструмент">
+          <button class="btn btn--mini btn--mini-active" data-cleanup-tool="reject" title="Reject-режим (R)">👆 Reject</button>
+          <button class="btn btn--mini" data-cleanup-tool="marker" title="Позначити пропущену клітинку (M)">📍 Mark</button>
+        </div>
+        <button id="cleanupReset" class="btn btn--ghost" title="Очистити rejected">✕ Rejected</button>
+        <button id="cleanupClearMarkers" class="btn btn--ghost" title="Очистити всі маркери">✕ Markers</button>
+        <button id="cleanupSave" class="btn btn--primary editor__save" title="Зберегти cleanup (Enter)">💾 Save Cleanup</button>
+      </div>
+
+      <!-- ===== TOOLBAR: Polygons ===== -->
+      <div class="cleanup__toolbar editor__toolbar editor__toolbar--polygons" style="display:none">
+        <button id="polyUndo" class="btn" title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button id="polyRedo" class="btn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+        <div class="cleanup__spacer"></div>
+        <div class="cleanup__bgtoggle" role="group">
+          <button class="btn btn--mini btn--mini-active" data-poly-bg="original">Оригінал</button>
+          <button class="btn btn--mini" data-poly-bg="overlay">Overlay</button>
+        </div>
+        <label class="muted">
+          <input type="checkbox" id="polyShowMarkers" checked /> Показати маркери
+        </label>
+        <button class="btn btn--ghost btn--mini" id="polyZoomReset" title="Скинути зум (1:1)">⤢ 100%</button>
+        <div class="cleanup__spacer"></div>
+        <!-- Active label chip + popover (Day 3b: 3 selects consolidated inside popover) -->
+        <div class="label-picker" id="labelPicker">
+          <button id="polyLabelBtn" class="btn btn--label" title="Активний клас (1–9 для перемикання)">
+            <span class="label-dot" id="polyLabelDot"></span>
+            <span id="polyLabelName">nucleus</span>
+          </button>
+          <div class="label-picker__popover" id="labelDropdown" style="display:none">
+            <!-- Active class list (populated by labels.js _buildLabelDropdown) -->
+            <div class="label-picker__items" id="labelDropdownItems"></div>
+            <!-- Reassign label for selected shape (Edit mode w/ selection only) -->
+            <div class="label-picker__section label-picker__section--reassign"
+                 id="labelPickerReassign" style="display:none">
+              <div class="label-picker__label">Перепризначити клас виділеному</div>
+              <select id="polyShapeLabelSelect" class="label-select"
+                      title="Змінити клас виділеного полігону"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Day 3c′: base chip з власним popover (replaces popover Advanced section).
+             Reuses .label-picker__* classes для consistency з active-label chip. -->
+        <div class="label-picker" id="basePicker">
+          <button type="button" class="label-chip label-chip--base" id="polyBaseChip"
+                  title="Базовий клас (модельні інстанси). Клік → змінити.">
+            <span class="label-chip__prefix">base:</span>
+            <span class="label-dot" id="polyBaseChipDot"></span>
+            <span id="polyBaseChipName">—</span>
+          </button>
+          <div class="label-picker__popover" id="baseChipDropdown" style="display:none">
+            <div class="label-picker__items" id="baseChipDropdownItems"></div>
+          </div>
+        </div>
+
+        <div class="cleanup__spacer"></div>
+        <div class="cleanup__toolmode" role="group" title="Інструмент">
+          <button class="btn btn--mini" data-poly-tool="draw" title="Малювати полігон (D). Клік ще раз або Esc — вимкнути. За замовч.: редагування кліком по полігону/вершині/ребру">✏️ Draw</button>
+          <button class="btn btn--mini" data-poly-tool="pick" title="Seed однієї клітини: клікни по інстансу на масці (P)">🎯 Pick</button>
+        </div>
+        <button id="polyMultiSeed" class="btn btn--ghost" title="Cross-model seed (Shift+S): для кожного класу — своя модель-джерело. Напр. nucleus з unet, vesicle з sam2.">🎯 Multi-seed</button>
+        <button id="polySeed" class="btn btn--ghost" title="Seed all (S): завантажити контури з УСІЄЇ обраної маски">📐 Seed all</button>
+        <button id="polyAlign" class="btn btn--ghost" title="Вирівняти вибрані вершини по лінії (2 опорні + інші)" disabled>📏 Align</button>
+        <button id="polyDeleteShape" class="btn btn--ghost" title="Видалити вибраний полігон (Delete)" disabled>🗑 Shape</button>
+        <button id="polySave" class="btn btn--primary editor__save" title="Зберегти полігони + запекти в маску (Enter)">💾 Save Polygons</button>
+      </div>
+
+      <!-- ===== TOOLBAR: Groups (Day 4-5 cell grouping) ===== -->
+      <div class="cleanup__toolbar editor__toolbar editor__toolbar--groups" style="display:none">
+        <button id="groupsUndo" class="btn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+        <button id="groupsRedo" class="btn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button>
+        <div class="cleanup__spacer"></div>
+        <div class="cleanup__bgtoggle" role="group">
+          <button class="btn btn--mini" data-groups-bg="original">Оригінал</button>
+          <button class="btn btn--mini btn--mini-active" data-groups-bg="overlay">Overlay</button>
+        </div>
+        <button class="btn btn--ghost btn--mini" id="groupsZoomReset" title="Скинути зум (1:1)">⤢ 100%</button>
+        <button class="btn btn--ghost btn--mini" id="groupsPeekUngrouped" title="Затисни (мишею або клавішу I) — підсвітити інстанси поза будь-якою групою">👁 Необведені</button>
+        <div class="cleanup__spacer"></div>
+        <button id="groupsNew" class="btn btn--primary" title="Створити нову групу (N)">＋ Нова</button>
+        <select id="groupsClassSelect" class="label-select" title="Клас поточної групи">
+          <!-- options заповнюються dynamic з group_classes -->
+        </select>
+        <button id="groupsClassesManager" class="btn btn--ghost btn--mini" title="Менеджер класів">⚙ Classes</button>
+        <!-- Tools (2026-05-26): Edit (click=toggle, drag=lasso) + Picker. -->
+        <div class="cleanup__toolmode" role="group" title="Інструмент">
+          <button class="btn btn--mini btn--mini-active" data-groups-tool="edit" title="Edit (A): клік по інстансу — toggle, потягни — lasso">✎ Edit</button>
+          <button class="btn btn--mini" data-groups-tool="picker" title="Group Picker (G): клік на інстанс — обрати його групу (далі — Edit)">🎯 Picker</button>
+        </div>
+        <button id="groupsDelete" class="btn btn--ghost" title="Видалити поточну групу" disabled>🗑 Group</button>
+        <button id="groupsSave" class="btn btn--primary editor__save" title="Зберегти групи (Enter)" disabled>💾 Save Groups</button>
+        <!-- Chip list — populated by editor/groups mixin -->
+        <div class="groups-chips" id="groupsChips" role="list"></div>
+      </div>
+
+      <div class="cleanup__hint muted" id="cleanupHint">
+        <!-- заповнюється JS залежно від таба/інструмента -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/static/app.js?v=20260511-v2"></script>
+</body>
+</html>
