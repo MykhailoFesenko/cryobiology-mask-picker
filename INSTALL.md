@@ -19,7 +19,8 @@
 ---
 
 ## 1. Передумови
-- **Python 3.10+** (тестовано 3.13), `pip`, `git`.
+- **Python 3.10–3.13** (тестовано на 3.13), `pip`, `git`. Верхню межу задає TensorFlow
+  (потрібен лише для опційної моделі StarDist) — ядро Mask Picker і решта моделей працюють ширше.
 - Windows / Linux / macOS. (Розробка велась на Windows; шляхи в коді відносні — переносно.)
 - GPU (CUDA) — **опційно**: пришвидшує сегментацію; без нього працює на CPU (повільніше; частина моделей лише CPU).
 
@@ -42,7 +43,7 @@ pip install -e ./shared/cellsegkit
 pip install cellpose            # cyto2/cyto/nuclei (built-in, без окремих ваг)
 pip install instanseg-torch     # instanseg
 pip install ultralytics         # yolo11_*
-pip install stardist csbdeep tensorflow   # stardist (важко; на Windows CPU-only)
+pip install stardist csbdeep tensorflow   # stardist (важко; TensorFlow задає верхню межу Python ≤3.13; Windows = CPU-only)
 ```
 
 ## 3. Ваги моделей (важливо — відповідь на часте питання)

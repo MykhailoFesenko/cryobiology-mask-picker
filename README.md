@@ -7,7 +7,7 @@
 > *Human-in-the-loop pipeline to turn rough ML cell-segmentation masks into a clean,
 > grouped ground-truth dataset (instance + semantic masks + cell groups).*
 
-**Версія 2.0.0** · Apache-2.0 · pytest **237/237** · Python 3.10+
+**Версія 2.0.0** · Apache-2.0 · pytest **237/237** · Python 3.10–3.13
 
 ```
  apps/segmentation  ─▶  data/<dataset>/output/  ─▶  apps/mask_picker  ─▶  deliverable
