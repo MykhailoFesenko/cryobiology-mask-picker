@@ -62,7 +62,7 @@ python apps/mask_picker/app.py --workspace data/my_dataset   # → http://127.0.
 
 ## Дані та ваги моделей
 Не зберігаються в репо (великі/чутливі), доступні окремо:
-- **Розмічені датасети** (vesicles, nuclei): _[посилання на Google Drive — додати]_.
+- **Розмічені датасети** (vesicles, nuclei): [Google Drive](https://drive.google.com/drive/folders/1jWNuxl-E7uaGRc3ubgug4RKz8cem_QTA).
 - **Ваги моделей** (~1.8 ГБ): у **GitHub Releases** — завантажуються **автоматично** при першому
   запуску сегментації (`tools/download_weights.py`). Built-in моделі (cyto2) ваг не потребують.
 
