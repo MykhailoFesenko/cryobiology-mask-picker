@@ -36,6 +36,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "cryobiology4" / "weights_manifest.json"
 
+_SSL_HINT = (
+    "\n  [SSL] HTTPS-сертифікат не пройшов перевірку (часто на свіжій Windows/ВМ —\n"
+    "        неповне сховище кореневих сертифікатів). Спробуй одне з:\n"
+    "          - pip install --upgrade certifi   (і запусти ще раз)\n"
+    "          - поклади файли ваг вручну в cryobiology4/weights/ (з Google Drive,\n"
+    "            див. README) — тоді інтернет для ваг не потрібен.\n"
+)
+
+
+def _prime_ca_certs() -> None:
+    """На свіжих Windows/ВМ системне сховище кореневих сертифікатів буває неповним →
+    HTTPS падає з `SSL: CERTIFICATE_VERIFY_FAILED`. Вказуємо urllib повний набір
+    коренів із certifi через SSL_CERT_FILE — його читає `ssl.create_default_context()`,
+    тож запрацюють і наші завантаження, і Cellpose (тягне свою модель з HuggingFace у
+    тому ж процесі). `setdefault` → не перетираємо кастомний CA (напр. корпоративний
+    проксі), а certifi-корені ДОДАЮТЬСЯ до системних, не замінюють їх."""
+    try:
+        import certifi
+    except Exception:
+        return
+    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+
+
+def _looks_like_ssl(ex: Exception) -> bool:
+    s = str(ex).lower()
+    return "certificate_verify_failed" in s or ("ssl" in s and "certificate" in s)
+
 
 def _load_manifest() -> dict:
     with open(MANIFEST, "r", encoding="utf-8") as f:
@@ -89,6 +116,7 @@ def ensure_weights(models: list[str] | None = None, quiet: bool = False) -> bool
     усе на місці після виклику. Якщо URL не налаштовано АБО немає інтернету —
     друкує підказку й повертає False (НЕ кидає виняток → сегментація built-in
     моделей працює далі)."""
+    _prime_ca_certs()
     try:
         man = _load_manifest()
     except Exception as e:
@@ -108,11 +136,13 @@ def ensure_weights(models: list[str] | None = None, quiet: bool = False) -> bool
         return False
     print(f"[weights] Завантажую {len(miss_files)+len(miss_arch)} відсутніх файлів ваг із Release...")
     ok = True
+    ssl_err = False
     for e in miss_files:
         try:
             _download(base + e["asset"], dest_root / e["dest"], e.get("size_mb", 0))
         except Exception as ex:
             print(f"  [!] {e['asset']}: {ex}"); ok = False
+            ssl_err = ssl_err or _looks_like_ssl(ex)
     for e in miss_arch:
         try:
             with tempfile.TemporaryDirectory() as td:
@@ -124,6 +154,9 @@ def ensure_weights(models: list[str] | None = None, quiet: bool = False) -> bool
                     zf.extractall(target)
         except Exception as ex:
             print(f"  [!] {e['asset']}: {ex}"); ok = False
+            ssl_err = ssl_err or _looks_like_ssl(ex)
+    if ssl_err:
+        print(_SSL_HINT)
     if ok:
         print("[weights] Готово — усі потрібні ваги на місці.")
     return ok

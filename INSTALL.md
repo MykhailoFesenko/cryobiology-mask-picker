@@ -56,8 +56,10 @@ pip install ultralytics         # yolo11_*
 
 **Ваги НЕ зберігаються у git-репо** (1.8 ГБ — задорого для git). Вони доступні окремо
 (GitHub Release / Google Drive — посилання у `README.md`). Поклади їх у `./cryobiology4/weights/`
-(або вкажи `CRYOBIOLOGY4_WEIGHTS` env var). **Без ваг сегментація все одно працює** — лише
-з built-in моделями (cyto2 тощо).
+(або вкажи `CRYOBIOLOGY4_WEIGHTS` env var). **Без кастомних ваг сегментація все одно працює** — на
+built-in моделях (`instanseg`, `cyto2`). Зверни увагу: built-in моделі тягнуть свою модель при першому
+запуску (`instanseg` кешується в пакеті; `cyto2` = Cellpose-SAM качає з HuggingFace) — тобто **потрібен
+інтернет**. Якщо мережа/сертифікати підводять — поклади ваги вручну (офлайн), а SSL-помилки див. §5.
 
 ## 4. Запуск
 ### Крок 1 — сегментація (заповнити `output/`)
@@ -93,6 +95,10 @@ python tools/launchers/bake_all.py --data-dir data/my_dataset --pack
   (ImportError → skip, не крах). Але `Flask`+`numpy` — обовʼязкові (з `requirements.txt`).
 - **Windows `WinError 126` / не вантажиться `c10.dll` при `import torch`:** не встановлено Microsoft Visual C++
   Redistributable (див. §1) → постав `vc_redist.x64.exe` і повтори. Це системна вимога PyTorch, не баг застосунку.
+- **`SSL: CERTIFICATE_VERIFY_FAILED` при завантаженні ваг/моделей (свіжа Windows/ВМ):** неповне сховище
+  кореневих сертифікатів. Завантажувач авто-підставляє повний набір `certifi` (`SSL_CERT_FILE`); якщо не
+  помогло — `pip install --upgrade certifi` і повтори, **або** поклади файли ваг вручну в
+  `cryobiology4/weights/` (з Google Drive — тоді мережа для ваг не потрібна). Не баг застосунку.
 - **Передача масок між застосунками:** лише через спільний `data/<dataset>/output/` — запусти сегментацію
   ДО Mask Picker. Mask Picker авто-знаходить моделі (підпапки з `overlay/` всередині `output/`).
 - **Рекомендований smoke-тест чистого середовища:** `python -m venv` → `pip install -r ...` →
