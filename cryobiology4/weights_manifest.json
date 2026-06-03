@@ -1,6 +1,6 @@
 {
   "_comment": "Ваги ML-моделей НЕ зберігаються в git (1.8 ГБ; GitHub блокує файли >100MB). Вони лежать як assets у GitHub Release і завантажуються АВТОМАТИЧНО при першому запуску сегментації (tools/download_weights.py). ЗАПОВНИ release_base_url нижче (або встанови env CRYOBIOLOGY_WEIGHTS_URL) — після того як створиш Release і завантажиш файли як assets.",
-  "release_base_url": "https://github.com/<USER>/<REPO>/releases/download/v2.0.0/",
+  "release_base_url": "https://github.com/MykhailoFesenko/cryobiology-mask-picker/releases/download/v2.0.0/",
   "dest_dir": "cryobiology4/weights",
   "files": [
     {"asset": "cpsam_finetuned.pth",            "dest": "cpsam_finetuned.pth",            "size_mb": 1176, "models": ["cpsam_finetuned"]},

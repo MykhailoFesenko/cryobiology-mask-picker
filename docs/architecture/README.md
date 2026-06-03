@@ -10,7 +10,7 @@
 >
 > Орхеструється майстер-планом [`../AUDIT_AND_DOCS_PLAN.md`](../AUDIT_AND_DOCS_PLAN.md).
 > Метод аудиту — [`../CODE_AUDIT_PRINCIPLES.md`](../CODE_AUDIT_PRINCIPLES.md).
-> Стан станом на створення скелета: **APP_VERSION 1.16.2, pytest 236/236**.
+> Стан: **APP_VERSION 2.0.0, pytest 237/237**.
 
 ---
 

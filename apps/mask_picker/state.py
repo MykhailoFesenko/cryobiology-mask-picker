@@ -7,7 +7,7 @@ backend модулями (baking/groups/cleanup/polygons/data_sync/routes).
 **Не залежить** від жодного з них (захист від circular imports).
 
 == Що лежить тут ==
-- **APP_VERSION** = "1.15.0" — глобальна версія Mask Picker.
+- **APP_VERSION** = "2.0.0" — глобальна версія Mask Picker.
 - **Config** dataclass — шляхи workspace + workspace_dir + models list.
 - **ModelSource** dataclass — name + paths (npy_dir, png_dir, yolo_dir, ...).
 - **StateStore** — wrap навколо `selections.json` (status/model/cleanup/dirty).
@@ -101,7 +101,7 @@ PROJECT_ROOT = HERE.parent.parent.parent
 DATA_ROOT = PROJECT_ROOT / "data" / "nuclei"
 
 APP_NAME = "Mask Picker"
-APP_VERSION = "1.16.2"
+APP_VERSION = "2.0.0"
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
 OVERLAY_EXTS = {".png", ".jpg", ".jpeg"}

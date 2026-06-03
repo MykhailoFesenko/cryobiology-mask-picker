@@ -641,7 +641,7 @@ def test_api_version(client_cfg):
     body = resp.get_json()
     assert body["name"] == "Mask Picker"
     assert body["version"] == mask_picker_app.APP_VERSION
-    assert body["version"] == "1.16.2"
+    assert body["version"] == "2.0.0"
 
 
 def test_write_polygons_json_atomic(tmp_path):
