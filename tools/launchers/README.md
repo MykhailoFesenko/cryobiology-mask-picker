@@ -20,7 +20,7 @@ Run commands from the project root unless a section says otherwise.
 
 The launchers use the Python available as `python` or `py -3`. They should not
 depend on a hardcoded local Python path. If Windows cannot find Python, install
-Python 3.10–3.13 from python.org and enable "Add python.exe to PATH".
+Python 3.10+ from python.org and enable "Add python.exe to PATH".
 
 Path assumptions:
 
