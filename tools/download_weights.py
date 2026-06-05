@@ -13,6 +13,7 @@ download_weights.py — авто-завантаження ваг ML-моделе
   python tools/download_weights.py                 # завантажити ВСІ відсутні ваги
   python tools/download_weights.py --models yolo11_512 cpsam_finetuned   # лише потрібні
   python tools/download_weights.py --check         # лише показати, чого бракує
+  python tools/download_weights.py --warmup        # + прогріти base-моделі (cyto2→Cellpose-SAM, instanseg)
 
   # або з коду (run_segmentation викликає авто):
   from download_weights import ensure_weights
@@ -32,6 +33,14 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+
+# Windows cp1251/cp866 консоль не вміє кодувати кирилицю у print()/argparse-help →
+# UnicodeEncodeError. Реконфігуруємо у UTF-8 (errors='replace' → '?' замість краху).
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, OSError):
+    pass
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "cryobiology4" / "weights_manifest.json"
@@ -162,10 +171,45 @@ def ensure_weights(models: list[str] | None = None, quiet: bool = False) -> bool
     return ok
 
 
+def warmup_base_models(models: list[str] | None = None) -> None:
+    """Прогріває base-моделі, які cellpose/instanseg качають при ПЕРШОМУ використанні
+    (поза GitHub Release): cyto2 → Cellpose-SAM (`cpsam`, ~1.2 ГБ) та instanseg built-in.
+    Вони кешуються у домашній теці пакета → наступні запуски стабільні навіть офлайн.
+    Кожна модель — окремо; помилка (нема пакета / нема мережі) НЕ валить решту, лише
+    друкує підказку (як і ensure_weights — preflight не має падати)."""
+    sys.path.insert(0, str(ROOT / "shared" / "cellsegkit"))
+    try:
+        from cellsegkit import SegmenterFactory
+    except Exception as e:
+        print(f"[warmup] cellsegkit недоступний ({e}) → прогрів base-моделей пропущено.")
+        return
+    want = set(models) if models else None
+    plan: list[str] = []
+    if want is None or (want & {"cyto2", "cyto", "nuclei"}):
+        plan.append("cyto2")            # → Cellpose-SAM (cpsam)
+    if want is None or (want & {"instanseg", "instanseg:brightfield"}):
+        plan.append("instanseg")
+    if not plan:
+        return
+    print(f"[warmup] прогріваю base-моделі (качаються при першому запуску): {', '.join(plan)}")
+    for m in plan:
+        try:
+            print(f"[warmup]   ↓ {m} …")
+            SegmenterFactory.create(m, use_gpu=False)
+            print(f"[warmup]   ✓ {m} готова (кешовано)")
+        except Exception as e:
+            print(f"[warmup]   [!] {m} пропущено: {e}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Завантажити ваги моделей з GitHub Release.")
     ap.add_argument("--models", nargs="*", default=None, help="Лише ці моделі (інакше всі).")
     ap.add_argument("--check", action="store_true", help="Лише показати, чого бракує.")
+    ap.add_argument(
+        "--warmup", action="store_true",
+        help="Після Release-ваг ще й прогріти base-моделі, що качаються при першому "
+             "використанні (cyto2 → Cellpose-SAM ~1.2 ГБ, instanseg).",
+    )
     args = ap.parse_args()
     man = _load_manifest()
     dest_root, miss_files, miss_arch = _missing(man, args.models)
@@ -175,7 +219,11 @@ def main() -> int:
         for m in miss:
             print(f"  - {m}")
         return 0
-    return 0 if ensure_weights(args.models) else 1
+    ok = ensure_weights(args.models)
+    if args.warmup:
+        warmup_base_models(args.models)
+        print("\n[preflight] Готово — далі сегментацію можна ганяти без пауз на завантаження.")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
