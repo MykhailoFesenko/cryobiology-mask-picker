@@ -334,6 +334,11 @@ def run():
     except Exception as _e:
         print(f"[weights] авто-завантаження пропущено: {_e}")
 
+    print("\n⏳ Перший запуск нової моделі може ЯКИЙСЬ ЧАС качати її ваги "
+          "(напр. cyto2 = Cellpose-SAM ~1.2 ГБ).")
+    print("   Це разове завантаження і НЕ зависання — дивись на прогрес у консолі.")
+    print("   Скачати все наперед: python tools/download_weights.py --warmup\n")
+
     results: list[tuple[str, bool]] = []
     for model in models:
         ok = run_model(model, SegmenterFactory, run_segmentation)
