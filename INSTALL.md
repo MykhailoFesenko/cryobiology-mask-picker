@@ -29,7 +29,7 @@
 
 ## 2. Встановлення
 ```bash
-git clone <repo-url> cryobiology
+git clone https://github.com/MykhailoFesenko/cryobiology-mask-picker.git cryobiology
 cd cryobiology
 
 # (рекомендовано) віртуальне середовище
@@ -60,6 +60,12 @@ pip install ultralytics         # yolo11_*
 built-in моделях (`instanseg`, `cyto2`). Зверни увагу: built-in моделі тягнуть свою модель при першому
 запуску (`instanseg` кешується в пакеті; `cyto2` = Cellpose-SAM качає з HuggingFace) — тобто **потрібен
 інтернет**. Якщо мережа/сертифікати підводять — поклади ваги вручну (офлайн), а SSL-помилки див. §5.
+
+> 💡 **Перший прогін «застряг на першій моделі»?** Майже завжди це не зависання, а
+> завантаження `cyto2`=Cellpose-SAM (**~1.2 ГБ**) — cellpose показує власний tqdm-прогрес у консолі.
+> Якщо відсоток стоїть на 0% — це мережа/SSL (§5), а не модель.
+> - **Скачати все наперед (Release-ваги + base-моделі cpsam/instanseg), далі без пауз:**
+>   `python tools/download_weights.py --warmup`. Завантаження разове (кеш у `~/.cellpose/` тощо).
 
 ## 4. Запуск
 ### Крок 1 — сегментація (заповнити `output/`)

@@ -52,7 +52,14 @@
 ```bash
 pip install -r apps/mask_picker/requirements.txt
 pip install -e ./shared/cellsegkit
-python apps/mask_picker/app.py --workspace data/my_dataset   # → http://127.0.0.1:5000
+
+# Крок 1 — ML-сегментація заповнює output/ (фото класти у data/my_dataset/images/).
+# Перший запуск качає модель Cellpose-SAM ~1.2 ГБ → потрібен інтернет (деталі — INSTALL.md §3).
+pip install cellpose                                           # + instanseg-torch / ultralytics за потреби
+python apps/segmentation/run_segmentation.py --data-dir data/my_dataset
+
+# Крок 2 — відбір і доразмітка у браузері:
+python apps/mask_picker/app.py --workspace data/my_dataset    # → http://127.0.0.1:5000
 ```
 Фінальний датасет: `python tools/launchers/bake_all.py --data-dir data/my_dataset --pack`.
 
@@ -65,7 +72,9 @@ python apps/mask_picker/app.py --workspace data/my_dataset   # → http://127.0.
 Не зберігаються в репо (великі/чутливі), доступні окремо:
 - **Розмічені датасети** (vesicles, nuclei): [Google Drive](https://drive.google.com/drive/folders/1jWNuxl-E7uaGRc3ubgug4RKz8cem_QTA).
 - **Ваги моделей** (~1.8 ГБ): у **GitHub Releases** — завантажуються **автоматично** при першому
-  запуску сегментації (`tools/download_weights.py`). Built-in моделі (cyto2) ваг не потребують.
+  запуску сегментації (`tools/download_weights.py`). Built-in моделі (cyto2/instanseg) ваг **із Release**
+  не потребують, але cellpose 4.x при першому запуску сам качає свою модель **Cellpose-SAM (~1.2 ГБ)** —
+  поради для повільної мережі/ВМ у [`INSTALL.md`](INSTALL.md) §3.
 
 ## Ліцензія
 Apache License 2.0 (`LICENSE`). Запозичені компоненти й ML-моделі — `NOTICE`.
