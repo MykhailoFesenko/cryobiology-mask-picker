@@ -27,6 +27,12 @@ from polygons import (
     _polygons_backup_dir,
     _polygons_path,
 )
+from groups import (
+    GROUPS_BACKUP_KEEP,
+    _backup_groups,
+    _groups_backup_dir,
+    _groups_path,
+)
 
 
 def make_blueprint(cfg: Config, state: StateStore, catalog: CatalogService) -> Blueprint:
@@ -243,6 +249,9 @@ def make_blueprint(cfg: Config, state: StateStore, catalog: CatalogService) -> B
 
         - selections.json[stem] (status + cleanup rejected + base_label) — cleared
         - polygons/<stem>.json — removed (backup у polygons/_backups/<stem>/<ts>/)
+        - groups/<stem>.json — removed (backup у groups/_backups/<stem>/<ts>/).
+          Групи — теж ручна правка; без видалення вони лишались би orphan
+          (посилались на щойно видалені polygon-инстанси).
         - selected/<model>/<fmt>/<stem>.* — removed для усіх моделей
           (backup у selected/<model>/_backups/<stem>/<ts>/)
 
@@ -250,10 +259,15 @@ def make_blueprint(cfg: Config, state: StateStore, catalog: CatalogService) -> B
         Після hard-reset → наступний Pick відновить selected/ через
         Day 3a auto-rebake з raw output/ (без manual polygon overlay).
 
-        Returns: {ok, removed: {state, polygons, selected_models}}
+        Returns: {ok, removed: {state, polygons, groups, selected_models}}
         """
         try:
-            removed = {"state": False, "polygons": False, "selected_models": []}
+            removed = {
+                "state": False,
+                "polygons": False,
+                "groups": False,
+                "selected_models": [],
+            }
 
             if state.get(stem):
                 state.remove(stem)
@@ -268,6 +282,17 @@ def make_blueprint(cfg: Config, state: StateStore, catalog: CatalogService) -> B
                 )
                 pj.unlink()
                 removed["polygons"] = True
+
+            if cfg.groups_dir:
+                gj = _groups_path(cfg.groups_dir, stem)
+                if gj.exists():
+                    _backup_groups(cfg.groups_dir, stem)
+                    _rotate_backups(
+                        _groups_backup_dir(cfg.groups_dir, stem),
+                        keep=GROUPS_BACKUP_KEEP,
+                    )
+                    gj.unlink()
+                    removed["groups"] = True
 
             for m in cfg.models:
                 existing = _find_existing_selected(cfg.selected_dir, m.name, stem)

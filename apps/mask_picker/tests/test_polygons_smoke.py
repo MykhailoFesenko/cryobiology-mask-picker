@@ -2013,11 +2013,13 @@ def test_bulk_user_assigns_annotator(client_cfg):
     assert store.get(STEM)["user"] == "annotator1"
 
 
-def test_hard_reset_clears_state_polygons_selected(client_cfg):
+def test_hard_reset_clears_state_polygons_groups_selected(client_cfg):
     """v2.0.0 Day 3c′ CP6: /api/hard-reset/<stem> видаляє state + polygons.json
-    + selected/<model>/<stem>.*. Оригінали images/ та output/<model>/npy/ —
-    read-only, не торкаються. Backup у _backups/."""
+    + groups.json + selected/<model>/<stem>.*. Оригінали images/ та
+    output/<model>/npy/ — read-only, не торкаються. Backup у _backups/."""
     client, cfg, store = client_cfg
+    cfg.groups_dir = cfg.selected_dir.parent / "groups"
+    cfg.groups_dir.mkdir(exist_ok=True)
 
     resp = client.post("/api/select", json={"stem": STEM, "model": MODEL, "user": "t"})
     assert resp.status_code == 200
@@ -2033,11 +2035,22 @@ def test_hard_reset_clears_state_polygons_selected(client_cfg):
     resp = client.post(f"/api/polygons/{STEM}", json=polygons_payload)
     assert resp.status_code == 200
 
+    # Manual group — hard-reset must clear it too, else it orphans onto the
+    # polygons we just deleted.
+    resp = client.post(f"/api/groups/{STEM}", json={
+        "model": MODEL,
+        "groups": [{"id": "g_001", "type": "cell", "instance_ids": [1, 2],
+                    "polygon_indices": [], "color_hue": 0}],
+    })
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+
     polygons_file = cfg.polygons_dir / f"{STEM}.json"
+    groups_file = cfg.groups_dir / f"{STEM}.json"
     raw_npy = cfg.output_root / MODEL / "npy" / f"{STEM}.npy"
     raw_image = cfg.images_dir / f"{STEM}.jpg"
     selected_npy = cfg.selected_dir / MODEL / "npy" / f"{STEM}.npy"
     assert polygons_file.exists()
+    assert groups_file.exists()
     assert raw_npy.exists() and raw_image.exists()
     assert selected_npy.exists(), "Pick має скопіювати у selected/"
     assert store.get(STEM) is not None
@@ -2048,6 +2061,7 @@ def test_hard_reset_clears_state_polygons_selected(client_cfg):
     assert data["ok"]
     assert data["removed"]["state"]
     assert data["removed"]["polygons"]
+    assert data["removed"]["groups"]
     assert MODEL in data["removed"]["selected_models"]
 
     assert store.get(STEM) is None
@@ -2055,6 +2069,10 @@ def test_hard_reset_clears_state_polygons_selected(client_cfg):
     backup_dir = cfg.polygons_dir / "_backups" / STEM
     assert backup_dir.exists() and any(backup_dir.iterdir()), \
         "polygon backup must be created before deletion"
+    assert not groups_file.exists()
+    groups_backup_dir = cfg.groups_dir / "_backups" / STEM
+    assert groups_backup_dir.exists() and any(groups_backup_dir.iterdir()), \
+        "groups backup must be created before deletion"
     assert not selected_npy.exists()
     assert raw_npy.exists() and raw_image.exists(), \
         "originals must NEVER be touched by hard-reset"
