@@ -283,11 +283,11 @@ export async function unset() {
   }
 }
 
-// Day 3c′ CP6: повний reset — state + polygons + selected/. Backup у _backups/.
+// Day 3c′ CP6: повний reset — state + polygons + groups + selected/. Backup у _backups/.
 export async function hardReset() {
   const it = currentItem();
   if (!it) return;
-  if (!confirm(`Видалити ВСІ ручні правки для ${it.stem}?\n\nБуде видалено:\n• state (вибір моделі, cleanup rejected, base_label)\n• polygons/${it.stem}.json (manual polygons)\n• selected/<model>/${it.stem}.{npy,png,yolo,overlay}\n\nБекап у _backups/. Оригінали images/ та output/ — НЕ видаляються.`)) {
+  if (!confirm(`Видалити ВСІ ручні правки для ${it.stem}?\n\nБуде видалено:\n• state (вибір моделі, cleanup rejected, base_label)\n• polygons/${it.stem}.json (manual polygons)\n• groups/${it.stem}.json (групи цього фото)\n• selected/<model>/${it.stem}.{npy,png,yolo,overlay}\n\nБекап у _backups/. Оригінали images/ та output/ — НЕ видаляються.`)) {
     return;
   }
   await flushEditorIfOpen();
