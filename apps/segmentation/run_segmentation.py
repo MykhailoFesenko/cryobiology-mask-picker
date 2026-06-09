@@ -376,7 +376,25 @@ def run():
 
     if not _has_gpu:
         heavy = [m for m in models if m in HEAVY_CPU_MODELS]
-        print("\n🐌 CUDA-GPU не знайдено — рахуємо на CPU (повільніше).")
+        # Розрізнити: (а) Є фізична NVIDIA-карта, але torch CPU-only → лікується
+        # `python tools/setup_gpu.py`; (б) карти нема / вона не-NVIDIA → CUDA не
+        # підходить взагалі, тільки CPU.
+        try:
+            from cellsegkit.utils.gpu_utils import check_nvidia_smi
+            _has_nvidia = check_nvidia_smi()
+        except Exception:
+            _has_nvidia = False
+
+        if _has_nvidia:
+            print("\n🎮 NVIDIA GPU Є, але встановлений torch — CPU-only "
+                  "(torch.cuda.is_available()=False).")
+            print("   Увімкнути GPU (раз поставити CUDA-збірку torch):")
+            print("       python tools/setup_gpu.py")
+        else:
+            print("\n🐌 CUDA-GPU не знайдено — рахуємо на CPU (повільніше).")
+            print("   CUDA є лише для NVIDIA; для AMD/Intel або повної діагностики:")
+            print("       python tools/setup_gpu.py --check")
+
         if heavy:
             print(f"   Моделі [{', '.join(heavy)}] у cellpose ≥4 — це Cellpose-SAM (трансформер):")
             print("   на CPU ОДНЕ фото може лічитися кілька (на великих фото — 10-40+) хвилин.")
@@ -386,7 +404,6 @@ def run():
             print("       python apps/segmentation/run_segmentation.py --model instanseg --data-dir <dir>")
         else:
             print("   ⚠️ Бар може стояти на 0% по кілька хв на фото — це не зависання, CPU повільний.")
-        print("   ▶ Для повної швидкості потрібен NVIDIA GPU + torch зі CUDA.")
     print()
 
     results: list[tuple[str, bool]] = []
