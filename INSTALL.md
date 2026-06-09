@@ -94,6 +94,11 @@ python apps/mask_picker/app.py --workspace data/my_dataset
 # Windows-зручність: run_mask_picker.bat  (дефолт: data/vesicles_good)
 ```
 
+> 🧪 **Безпечно поекспериментувати / «попсувати» розмітку?** Зроби пісочницю-копію датасета
+> (за замовч. ПОЗА OneDrive, оригінал не чіпається): `python tools/make_sandbox.py`
+> (або `make_sandbox.bat`) → відкрий її через `--workspace <шлях>`. Зламав — видали папку
+> або перероби `--force`. Список: `--list`, тільки план: `--dry-run`.
+
 ### Фінальний датасет замовнику
 ```bash
 python tools/launchers/bake_all.py --data-dir data/my_dataset --pack
