@@ -56,6 +56,7 @@ if any(a in {"--help", "-h"} for a in sys.argv[1:]):
     print(__doc__)
     print("Optional flags:")
     print("  --all                 Run all models in ALL_MODELS")
+    print("  --model NAME          Run a single model NAME (overrides default cyto2)")
     print("  --clean-duplicates    Remove 'Копия *.jpg' from images/ before run")
     print("  --data-dir PATH       Override data dir (default: data/vesicles_good)")
     print("  -h, --help            Show this help and exit")
@@ -97,6 +98,10 @@ OUTPUT_BASE = DATA_DIR / "output"
 #  "cyto2"               — Cellpose улучшенный (работает без доп. зависимостей)
 #  "cyto"                — Cellpose: клетки целиком
 #  "nuclei"              — Cellpose: ядра с видимыми границами
+#  ⚠️ У Cellpose ≥4.0 ці три (cyto2/cyto/nuclei) — це БІЛЬШЕ не легкі моделі:
+#     model_type ігнорується, і завжди вантажиться Cellpose-SAM (cpsam, ~1.2 ГБ,
+#     трансформер). На CPU одне фото = кілька-десятки хвилин. Для GPU це норм,
+#     для CPU-перевірки пайплайну швидше взяти instanseg (--model instanseg).
 #
 #  "instanseg"           — ★ ЛУЧШИЙ F1 (Криобиология III), нужен: pip install instanseg-torch
 #  "instanseg:brightfield" — InstanSeg для brightfield-микроскопии
@@ -129,6 +134,26 @@ ALL_MODELS = [
     "yolo11_512",
     "yolo11_680",
 ]
+
+# Моделі, які на CPU рахуються ДУЖЕ повільно (Cellpose-SAM трансформер):
+# cyto2/cyto/nuclei у cellpose ≥4 = cpsam, + явний cpsam_finetuned.
+# Використовується лише для попередження користувача (не блокує запуск).
+HEAVY_CPU_MODELS = {"cyto2", "cyto", "nuclei", "cpsam_finetuned"}
+
+
+def _resolve_single_model() -> str:
+    """--model NAME з sys.argv → одна конкретна модель (інакше дефолт MODEL_TYPE).
+
+    Дає змогу прогнати ОДНУ модель без правки коду, напр. на CPU спершу
+    швидкий `--model instanseg` замість важкого cyto2=Cellpose-SAM.
+    """
+    args = sys.argv[1:]
+    for i, a in enumerate(args):
+        if a == "--model" and i + 1 < len(args):
+            return args[i + 1]
+        if a.startswith("--model="):
+            return a.split("=", 1)[1]
+    return MODEL_TYPE
 
 
 # ── 1. Распаковка и очистка имён файлов ─────────────────────────────────────
@@ -322,7 +347,7 @@ def run():
                 print("   Проверь установку torch и системных библиотек (см. INSTALL.md).\n")
         sys.exit(1)
 
-    models = ALL_MODELS if run_all else [MODEL_TYPE]
+    models = ALL_MODELS if run_all else [_resolve_single_model()]
 
     # Авто-завантаження ваг кастомних моделей з GitHub Release (якщо налаштовано
     # release_base_url / env CRYOBIOLOGY_WEIGHTS_URL). Built-in моделі (cyto2 тощо)
@@ -336,8 +361,33 @@ def run():
 
     print("\n⏳ Перший запуск нової моделі може ЯКИЙСЬ ЧАС качати її ваги "
           "(напр. cyto2 = Cellpose-SAM ~1.2 ГБ).")
-    print("   Це разове завантаження і НЕ зависання — дивись на прогрес у консолі.")
-    print("   Скачати все наперед: python tools/download_weights.py --warmup\n")
+    print("   Це разове завантаження і НЕ зависання — дивись на прогрес завантаження.")
+    print("   Скачати все наперед: python tools/download_weights.py --warmup")
+
+    # Чи є CUDA-GPU? Якщо ні — попередити, що ПІСЛЯ завантаження ваг сам інференс
+    # важких моделей (Cellpose-SAM) на CPU дуже довгий і прогрес-бар законно стоїть
+    # на 0% по кілька хвилин на фото. Це найчастіша причина «зависло на першій
+    # моделі» — насправді просто рахує на CPU (саме цей кейс і збив з пантелику).
+    try:
+        import torch
+        _has_gpu = bool(torch.cuda.is_available())
+    except Exception:
+        _has_gpu = False
+
+    if not _has_gpu:
+        heavy = [m for m in models if m in HEAVY_CPU_MODELS]
+        print("\n🐌 CUDA-GPU не знайдено — рахуємо на CPU (повільніше).")
+        if heavy:
+            print(f"   Моделі [{', '.join(heavy)}] у cellpose ≥4 — це Cellpose-SAM (трансформер):")
+            print("   на CPU ОДНЕ фото може лічитися кілька (на великих фото — 10-40+) хвилин.")
+            print("   ⚠️ Поки рахується перше фото, бар СТОЇТЬ на 0%, а таймер НЕ рухається —")
+            print("      це НЕ зависання, CPU просто повільний. Дай йому час дорахувати.")
+            print("   ▶ Швидко перевірити, що пайплайн працює (хвилини, не години) — легша модель:")
+            print("       python apps/segmentation/run_segmentation.py --model instanseg --data-dir <dir>")
+        else:
+            print("   ⚠️ Бар може стояти на 0% по кілька хв на фото — це не зависання, CPU повільний.")
+        print("   ▶ Для повної швидкості потрібен NVIDIA GPU + torch зі CUDA.")
+    print()
 
     results: list[tuple[str, bool]] = []
     for model in models:
